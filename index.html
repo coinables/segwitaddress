@@ -82,7 +82,7 @@
   
   <script>
   function generateNewKeyPair(){
-      var NETWORK = bitcoin.networks.bitcoin
+      var NETWORK = bitcoin.networks.bitcoin;
       var wif = bitcoin.ECPair.makeRandom({network: NETWORK}).toWIF();
       //var wif = "KyjcD49goTAdFgYj38gnvpwMa1vzaHLoKfJcDFgGr3fikun5DiqL";
       var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
@@ -128,6 +128,8 @@
             }
         
     }
+      
+    
       
     function bulkAddress(){
         var keynum = document.getElementById("bulknum").value;
