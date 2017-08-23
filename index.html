@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+    
+<head>
+<style>
+    body, html {
+        padding: 12px;
+    }
+    #share{
+        color: green;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #keep{
+        color: red;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #sweepcont{
+        width: 60%;
+    }
+    #wit{
+        background-color: black;
+        color: #ffeeff;
+    }
+</style>
+    <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/readable/bootstrap.min.css" rel="stylesheet" integrity="sha384-Li5uVfY2bSkD3WQyiHX8tJd0aMF91rMrQP5aAewFkHkVSTT2TmD2PehZeMmm7aiL" crossorigin="anonymous">
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+</head>
+<body>
+  <h1>SegWit Paper Wallet</h1>
+    
+    <button onClick="return btnCreate();" class="btn btn-default">New SegWit Address</button><br>
+    
+    <table width="100%">
+    <tr>
+        <td width="50%"><span id="share">OK TO SHARE</span></td>
+        <td align="right"><span id="keep">KEEP PRIVATE</span></td>
+    </tr>
+    <tr>
+        <td>
+            <div id="qrcode"></div>
+            <div id="swaddr"></div>
+        </td>
+        <td align="right">
+            <div id="qrcodepk"></div>
+            <div id="swpk"></div>
+        </td>
+    </tr>
+    </table>
+    <br>
+    <h3>Bulk Keys</h3>
+    Amount to Generate: <br>
+    <input type="number" id="bulknum"><br>
+    <button id="btnBulk" onClick="return bulkAddress();" class="btn btn-default">Bulk Generate</button><br>
+    <div id="websocketfeed"></div>
+    <br>
+    <div id="bulkkeys"></div><br>
+    
+    <h3>Sweep SegWit Private Key</h3>
+    <div id="sweepcont">
+    <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey"><br>
+    <input type="text" class="form-control input-lg" placeholder="Destination Address" id="toaddress"><br>
+    <input type="number" class="form-control input-lg" id="satperbyte"> <small>Miner Fee Satoshis Per Byte</small><br><br>
+    <button class="btn btn-default" id="sweepkey">TRANSFER ALL FUNDS</button><br>
+    </div>
+    <div id="results"></div>
+    <br><br>
+    <div class="alert alert-dismissible alert-info">
+  <button type="button" class="close" data-dismiss="alert">&times;</button>
+  This site is <strong>Open Source</strong> and runs on just JavaScript and HTML. That means you can download it and run it on your own machine. This allows you to generate addresses offline, only the sweep feature requires an internet connection. 
+</div>
+    <br><br>
+    <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label label-default"><span id="wit">SEG</span>WIT</span></a>
+    <a href="https://github.com/coinables/segwitpaperwallet"><span class="label label-primary">OPEN SOURCE</span></a>
+    <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BITCOINJS</span></a>
+ <script src="js/bitcoinjs-lib-3.1.1.js"></script>
+ <script type="text/javascript" src="js/qrcode.js"></script>
+  
+  <script>
+  function generateNewKeyPair(){
+      var NETWORK = bitcoin.networks.bitcoin
+      var wif = bitcoin.ECPair.makeRandom({network: NETWORK}).toWIF();
+      //var wif = "KyjcD49goTAdFgYj38gnvpwMa1vzaHLoKfJcDFgGr3fikun5DiqL";
+      var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
+      var pubKey = keyPair.getPublicKeyBuffer();
+      var pubKeyHash = bitcoin.crypto.hash160(pubKey);
+      var redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
+      var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
+      var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
+      var newaddy = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
+      return {
+          wifPrivateK: wif,
+          swAddress: newaddy
+      };
+  }
+    function btnCreate(){
+        var keys = generateNewKeyPair();
+        var swaddress = keys.swAddress;
+        var pkey = keys.wifPrivateK;
+        
+        document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h3></div><div class='panel-body'>" + swaddress + "</div></div>";
+        
+        document.getElementById("qrcode").innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), swaddress);
+        
+        document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-heading'><h3 class='panel-title'>Segwit Private Key</h3></div><div class='panel-body'>" + pkey + "</div></div>";
+        
+        document.getElementById("qrcodepk").innerHTML = "";
+        new QRCode(document.getElementById("qrcodepk"), pkey);
+        
+        var btcs = new WebSocket('wss://ws.blockchain.info/inv');
+
+        btcs.onopen = function()
+            {
+            btcs.send( JSON.stringify( {"op":"addr_sub", "addr":swaddr} ) );
+            };
+
+        btcs.onmessage = function(onmsg)
+            {
+            var response = JSON.parse(onmsg.data);
+            var amount = response.x.out[0].value;
+            var calAmount = amount / 100000000;
+            $('#websocketfeed').prepend("<center><p> Incoming Funds: " + calAmount + " BTC</p></center>");
+            }
+        
+    }
+      
+    function bulkAddress(){
+        var keynum = document.getElementById("bulknum").value;
+            if(keynum < 1001){
+                    for(i=0; i < keynum; i++){
+                        var keys = generateNewKeyPair();
+                        var swaddress = keys.swAddress;
+                        var pkey = keys.wifPrivateK;
+                        var visualnum = i +1;
+                        $("#bulkkeys").append("<p>"+ visualnum + ", &quot;"+swaddress+"&quot;, &quot;"+pkey+"&quot;</p>");
+                    }
+            } else {
+                alert("1000 is the max bro");
+            }
+    }  
+      
+     function sweepKey() {
+     var NETWORK = bitcoin.networks.bitcoin;
+     var API_DOMAIN = "https://api.smartbit.com.au";
+     var EXPLORER_DOMAIN = "https://www.smartbit.com.au";
+   
+     var WIF = $("#wifprivatekey").val();
+      
+      if (WIF == "") {
+        alert("The WIF Private key must be entered to send!");
+        return;
+      };
+      
+      var toAddress = $("#toaddress").val();
+      if (toAddress == "") {
+        alert("Please Enter Address to send to!");
+        return;
+      }; 
+      var P2SHAddress = wif2address(WIF);
+      var data
+      $.ajax({
+        async: true,
+        type: "GET",
+        url: API_DOMAIN + "/v1/blockchain/address/" + P2SHAddress + "/unspent",
+        success: function(result) {
+          console.log(result.unspent.length + " utxos found");
+          data = result.unspent.map(function(item){
+            return {
+              "txid": item.txid,
+              "vout": item.n,
+              "satoshis": item.value_int
+            }
+          })
+          $("#inputdata").val(JSON.stringify(data, null, 2));
+        }
+      });
+         
+      var keyPair = bitcoin.ECPair.fromWIF(WIF, NETWORK);
+      var inputData = $("#inputdata").val();   
+      var satPerByte = $("#satperbyte").val();
+      
+      if (satPerByte == "") {
+        alert("Please enter Satoshi Per Byte Fee Rate!");
+        return;
+      }
+         
+      satPerByte = parseFloat(satPerByte);
+      var pubKey = keyPair.getPublicKeyBuffer();
+      var pubKeyHash = bitcoin.crypto.hash160(pubKey);
+      var redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash)
+      var redeemScriptHash = bitcoin.crypto.hash160(redeemScript)
+      var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash)
+      var txb = new bitcoin.TransactionBuilder(NETWORK)
+      for (var i = 0; i < inputData.length; i++) {
+        txb.addInput(inputData[i].txid,
+                     inputData[i].vout,
+                     0xffffffff,
+                     scriptPubKey)
+      }
+      var estimatedByteCount = getByteCountSegwitP2SH(inputData.length, 1)
+      var estimatedFeeSatoshis = Math.ceil(estimatedByteCount * satPerByte)
+      var totalSatoshis = inputData.reduce(function(total, item){return total += item.satoshis}, 0)
+      var totalSatoshisMinusFee = totalSatoshis - estimatedFeeSatoshis
+      if (NETWORK.pubKeyHash == toAddressObj.version) {
+        var sendToScriptPubkey = bitcoin.script.pubKeyHash.output.encode(toAddressObj.hash)
+      } else if (NETWORK.scriptHash == toAddressObj.version) {
+        var sendToScriptPubkey = bitcoin.script.scriptHash.output.encode(toAddressObj.hash)
+      }
+      txb.addOutput(sendToScriptPubkey, totalSatoshisMinusFee);
+      for (var i = 0; i < inputData.length; i++) {
+        txb.sign(i, keyPair, redeemScript, null, inputData[i].satoshis);
+      }
+      var tx = txb.build();
+      var tx_txid = tx.getId();
+      var tx_raw = tx.toHex();
+      $.ajax({
+        async: true,
+        type: "POST",
+        url: API_DOMAIN + "/v1/blockchain/pushtx",
+        contentType: 'application/json',
+        dataType: "json",
+        data: JSON.stringify({hex: tx_raw}),
+        success: function(result) {
+          console.log("Transaction sent!");
+        }
+      });
+      $("#results").html(
+        "Transaction ID:<br><a href=\"" + EXPLORER_DOMAIN + "/tx/" + tx_txid + "\" target=\"_blank\">" +
+        tx_txid + "</a><br>" +
+        "Raw Transaction:<br><textarea cols=\"150\" rows=\"10\">" +
+        tx_raw + "</textarea>"
+      );
+}
+         
+function getByteCountSegwitP2SH(inputCount,outputCount,isMultisig,m,n) {
+  var inputSize = isMultisig ? ((73 * m) + (34 * n) + 6 + (76 * 4)) : 108 + (64 * 4)
+  var outputSize = 34 * 4
+  var estimatedWeight = inputSize * inputCount + outputSize * outputCount + 10 * 4
+  return Math.ceil(estimatedWeight / 4)
+}  
+      
+      
+    
+$(document).ready( function() {
+      $("#sweepkey").on('click', sweepKey);
+      $.ajax({
+        async: true,
+        type: "GET",
+        url: "https://bws.bitpay.com/bws/api/v2/feelevels",
+        success: function(result) {
+          var satPerByte = Math.ceil(result.filter(function(item){ return item.level == "superEconomy" })[0].feePerKb / 1000)
+          var calcSat = satPerByte / 2;
+          $("#satperbyte").val(calcSat.toFixed(0));
+        }
+      });
+});
+     
+  
+  </script>
+</body>
+</html>
