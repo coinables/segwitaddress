@@ -9,6 +9,7 @@ the BitcoinJS library and is HEAVILY based on BIP32JP's SegWit repo (https://git
 
  * Keypair generation with QR Codes
  * Bulk address generator
+ * Vanity generator (very slow, but hey it's javascript)
  * Key Sweeping Tool to move all funds belonging to a single SegWit private key. 
 
 Please feel encouraged to contribute. 	
