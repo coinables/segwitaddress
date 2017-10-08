@@ -28,13 +28,16 @@
         background-color: black;
         color: #ffeeff;
     }
-    
+    #qrcam{
+        display: none;
+    }
 </style>
     <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/readable/bootstrap.min.css" rel="stylesheet" integrity="sha384-Li5uVfY2bSkD3WQyiHX8tJd0aMF91rMrQP5aAewFkHkVSTT2TmD2PehZeMmm7aiL" crossorigin="anonymous">
 <script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
+    <script src="js/instascan.min.js"></script>
 </head>
 <body>
   <h1>SegWit Paper Wallet</h1><br>
@@ -72,7 +75,10 @@
     
     <h3>Sweep SegWit Private Key</h3>
     <div id="sweepcont">
-    <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey"><br>
+    <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey">
+    <button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button>
+    <video id="qrcam"></video>
+    <br>
     <input type="text" class="form-control input-lg" placeholder="Destination Address" id="toaddress"><br>
         <textarea id="inputdata" cols="100" rows="7"></textarea>
     <input type="number" class="form-control input-lg" id="satperbyte"> <small>Miner Fee Satoshis Per Byte</small><br><br>
@@ -400,6 +406,27 @@ $(document).ready( function() {
      
   
   </script>
+    
+<script>
+function turnOnWC(){
+    $("#qrcam").css("display","block");
+    var qr = new Instascan.Scanner({
+    video: document.getElementById("qrcam")
+    });
+
+    qr.addListener('scan', function(data){
+        document.getElementById("wifprivatekey").value = data;
+    });    
+
+    Instascan.Camera.getCameras().then(function(cams){
+        qr.start(cams[0]);
+    }).catch(function(err){
+        console.log(err);
+    });    
+}    
+
+</script>    
+    
 <script>
 //redirect https if not local
 if (window.location.host.indexOf('github.io') > -1 && window.location.protocol != "https:"){
