@@ -1,7 +1,7 @@
 # SegWitAddress.org
 
 This is a simple bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. This repo uses 
-the BitcoinJS library and is HEAVILY based on BIP32JP's SegWit repo (https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit). 
+the BitcoinJS library and was built from BIP32JP's SegWit repo (https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit). 
 
 =======
 
