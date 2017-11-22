@@ -10,6 +10,14 @@
 <style>
     body, html {
         padding: 12px;
+        font-family: "Verdana", "sans-serif";
+    }
+    a:link {
+    text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
     }
     #share{
         color: green;
@@ -28,11 +36,52 @@
         background-color: black;
         color: #ffeeff;
     }
+    .label-default{
+        padding: 3px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        text-decoration: none;
+        color: #222;
+    }
+    .label-primary{
+        padding: 3px;
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-success{
+        padding: 3px;
+        border: 1px solid #52BE80;
+        background-color: #52BE80;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
     #qrcam{
         display: none;
     }
     #entropyCanvas{
         display: none;
+    }
+    #entropyRef{
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        color: #fff;
+        padding: 5px;
+    }
+    #sweepkey{
+        background-color: #52BE80;
+        color: #fff;
+    }
+    #btnBulk{
+        background-color: #F1C40F;
+        color: #fff;
+    }
+    #clearBulk{
+        background-color: #EC7063;
+        color: #fff;
     }
     #qrnotify{
         display: none;
@@ -45,12 +94,57 @@
         border: 0;
         box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
     }
-</style>
-    <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/readable/bootstrap.min.css" rel="stylesheet" integrity="sha384-Li5uVfY2bSkD3WQyiHX8tJd0aMF91rMrQP5aAewFkHkVSTT2TmD2PehZeMmm7aiL" crossorigin="anonymous">
-<script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
+    .well{
+        padding: 16px;
+        border: 2px solid #aaa;
+        border-radius: 3px;
+        background-color: #ddd;
+        color: #000;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    input{
+        width: 60%;
+        border-radius: 4px; 
+        background-color: #eee;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+    }
+    .btn{
+        border-radius: 4px; 
+        background-color: #fff;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    #progbar{
+        background-color: #5DADE2;
+        height: 20px;
+    }
+    .panel-primary{
+        border: 2px solid #5DADE2;
+        border-radius: 3px;
+    }
+    .panel-heading{
+        background-color: #5DADE2;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-danger{
+        border: 2px solid #EC7063;
+        border-radius: 3px;
+    }
+    .panel-headingd{
+        background-color: #EC7063;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-body{
+        padding: 3px;
+    }
+    </style>
+    <script src="js/jquery-3.2.1.min.js"></script>
     <script src="js/instascan.min.js"></script>
 </head>
 <body>
@@ -62,7 +156,7 @@
     
         <canvas id="entropyCanvas" width="800" height="200" style="border: 1px solid black;"></canvas>
         <div class="progress progress-striped">
-        <div class="progress-bar progress-bar-info" style="width: 0%"></div>
+        <div class="progress-bar progress-bar-info" style="width: 0%" id="progbar"></div>
         </div>
         <div id="canvasCounter"></div>
    
@@ -86,7 +180,7 @@
     <br>
     <hr class="hr">
     <br>    
-    <h3>Sweep SegWit Private Key</h3>
+    <h2>Sweep SegWit Private Key</h2>
     <div id="sweepcont">
     <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey">
     <button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
@@ -103,9 +197,9 @@
     <br>
     <hr class="hr">
     <br>
-    <h3>Bulk Keys</h3>
+    <h2>Bulk Keys</h2>
     <small>Prints in CSV format. 300 will take about 10 seconds.</small><br>
-    Amount to Generate: <br>
+    <h4>Amount to Generate:</h4> 
     <input type="number" id="bulknum"><br>
     <button id="btnBulk" onClick="return bulkAddress();" class="btn btn-warning">Bulk Generate</button> <button class="btn btn-danger" id="clearBulk">Clear</button><br>
     
@@ -114,7 +208,7 @@
     <br>
     <hr class="hr">
     <br>
-    <h3>Vanity SegWit Address</h3>
+    <h2>Vanity SegWit Address</h2>
     <p>NOTE: This is mostly a novelty, it's a very slow generator.</p>
     <p>Max Attempts: <input type="number" id="maxattempts" value="10000"><small>10,000 attempts will take about 2-3 minutes to generate.</small></p>
     <p>Phrase to match: <input type="text" id="vanityPhrase" placeholder="btc"> <small>not case sensitive</small></p>
@@ -123,9 +217,9 @@
     <div id="vanityOut"></div>
     <br><br>
     
-    <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label label-default"><span id="wit">SEG</span>WIT</span></a>
-    <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a>
-    <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BITCOINJS</span></a>
+    <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
+    <a href="https://github.com/coinables/segwitaddress"><span class="label-primary">OPEN SOURCE</span></a>
+    <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label-success">BITCOINJS</span></a>
  <script src="js/bitcoinjs-lib-3.1.1.js"></script>
  <script src="js/metropy.js"></script>
  <script type="text/javascript" src="js/qrcode.js"></script>
@@ -180,12 +274,12 @@
                 $("#entropywell").css("display","none");
                 $("#canvasCounter").html("");
                  me.addMouseEntropy(entropy, function(maddr, mpk){
-                     document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h3></div><div class='panel-body'>" + maddr + "</div></div>";
+                     document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
         
                     document.getElementById("qrcode").innerHTML = "";
                     new QRCode(document.getElementById("qrcode"), maddr);
 
-                    document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-heading'><h3 class='panel-title'>Segwit Private Key</h3></div><div class='panel-body'>" + mpk + "</div></div>";
+                    document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + mpk + "</div></div>";
 
                     document.getElementById("qrcodepk").innerHTML = "";
                     new QRCode(document.getElementById("qrcodepk"), mpk);
@@ -218,12 +312,12 @@
             var comparePhrase = phrase.match(regtest);
                         
             if(comparePhrase){
-                document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h3></div><div class='panel-body'>" + addr + "</div></div>";
+                document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + addr + "</div></div>";
         
                 document.getElementById("qrcode").innerHTML = "";
                 new QRCode(document.getElementById("qrcode"), addr);
 
-                document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-heading'><h3 class='panel-title'>Segwit Private Key</h3></div><div class='panel-body'>" + pkey + "</div></div>";
+                document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-heading'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + pkey + "</div></div>";
 
                 document.getElementById("qrcodepk").innerHTML = "";
                 new QRCode(document.getElementById("qrcodepk"), pkey);
@@ -492,6 +586,7 @@ function turnOnWC(){
         console.log(err);
     });    
 }   
+ 
     
 function turnOnWC2(){
 $("#qrcam").css("display","block");
@@ -506,7 +601,8 @@ qr.addListener('scan', function(data){
          $("#qrcam").css("display","none");
         $("#qrnotify2").css("display","block");
     }
-});    
+});  
+      
 
 Instascan.Camera.getCameras().then(function(cams){
     qr.start(cams[0]);
