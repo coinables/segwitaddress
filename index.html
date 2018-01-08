@@ -318,7 +318,7 @@
      var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
      var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
      var newaddy = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
-        $("#detailsOutput").append("<p>WIF: "+ wif + "<div id='detailsPK'></div></p><div id='detailsAddr'>Address: "+newaddy+"</div><br><div id='detailsAddrQr'></div><br><p></p><p>Public Key: "+pubKeyHex+"</p><p>Redeem Script: "+redeemScriptHex+"</p>");
+        $("#detailsOutput").append("<p>WIF: "+ wif + "<div id='detailsPK'></div></p><div id='detailsAddr'>Address: "+newaddy+"</div><br><div id='detailsAddrQr'></div><br><p></p><p>Public Key: "+pubKeyHex+"</p><p>Redeem Script: "+redeemScriptHex+"</p><br>");
          new QRCode(document.getElementById("detailsPK"), {
             text: wif,
             width: 128,
