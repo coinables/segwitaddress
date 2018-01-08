@@ -157,7 +157,9 @@
 </head>
 <body>
   <h1>SegWit Paper Wallet</h1><br>   
-  <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library and was initially built from BIP32JP's SegWit repo (<a href="https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit">https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit</a>).</div> 
+  <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.<br><br>All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network. </div> 
+    
+    
     <br>
     <a href="#entropyRef"><button id="entropyRef" onClick="return btnCreate();"  class="btn btn-primary">Generate New SegWit Address</button></a><br>
     
@@ -217,7 +219,8 @@
     <hr class="hr">
     <br>
     <h2>Details</h2>
-    <p>Enter a WIF private key to generate it's corresponding segwit address.</p>
+    <p>Enter a WIF private key to generate its corresponding segwit address.</p>
+    
     <p>WIF Private Key: <input type="text" id="detailsWIF" ></p>
     <button id="detailsBtn" class="btn btn-info">Show Details</button>
     <br>
