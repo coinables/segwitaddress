@@ -143,13 +143,21 @@
     .panel-body{
         padding: 3px;
     }
+    #detailsAddr{
+        text-align: right;
+    }
+    #detailsAddrQr{
+        display: block;
+        width: 140px;
+        float: right;
+    }
     </style>
     <script src="js/jquery-3.2.1.min.js"></script>
     <script src="js/instascan.min.js"></script>
 </head>
 <body>
   <h1>SegWit Paper Wallet</h1><br>   
-  <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.</div> 
+  <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library and was initially built from BIP32JP's SegWit repo (<a href="https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit">https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit</a>).</div> 
     <br>
     <a href="#entropyRef"><button id="entropyRef" onClick="return btnCreate();"  class="btn btn-primary">Generate New SegWit Address</button></a><br>
     
@@ -208,13 +216,15 @@
     <br>
     <hr class="hr">
     <br>
-    <h2>Vanity SegWit Address</h2>
-    <p>NOTE: This is mostly a novelty, it's a very slow generator.</p>
-    <p>Max Attempts: <input type="number" id="maxattempts" value="10000"><small>10,000 attempts will take about 2-3 minutes to generate.</small></p>
-    <p>Phrase to match: <input type="text" id="vanityPhrase" placeholder="btc"> <small>not case sensitive</small></p>
-    <button id="vanityBtn" class="btn btn-info">Start Searching</button>
+    <h2>Details</h2>
+    <p>Enter a WIF private key to generate it's corresponding segwit address.</p>
+    <p>WIF Private Key: <input type="text" id="detailsWIF" ></p>
+    <button id="detailsBtn" class="btn btn-info">Show Details</button>
+    <br>
+    <div id="detailsOutput" class="well well-lg"></div><br>
+    <br>
     
-    <div id="vanityOut"></div>
+    
     <br><br>
     
     <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
@@ -283,6 +293,7 @@
 
                     document.getElementById("qrcodepk").innerHTML = "";
                     new QRCode(document.getElementById("qrcodepk"), mpk);
+                    
                  entropy = "";
                  });
             }               
@@ -292,40 +303,32 @@
         
     }
             
-    function vanity(){
-        //start create new adress loop with a max out at some point
-        var maxout = $("#maxattempts").val(); //roughly 50-70 key pairs a second which is very slow but hey this is javascript
-        var phrase = $("#vanityPhrase").val();
-        console.log(phrase);
-        phrase = phrase.trim();
-        for(var i = 0; i< maxout; i++){
-            var newkey = generateNewKeyPair();
-            var addr = newkey.swAddress;
-            console.log(addr);
-            var pkey = newkey.wifPrivateK;
-            //get length of phrase
-            var vanityLength = phrase.length;
-            //substring
-            var addressTarget = addr.substr(1,vanityLength);
-            console.log(addressTarget);
-            var regtest = new RegExp(addressTarget, 'i');
-            var comparePhrase = phrase.match(regtest);
-                        
-            if(comparePhrase){
-                document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + addr + "</div></div>";
-        
-                document.getElementById("qrcode").innerHTML = "";
-                new QRCode(document.getElementById("qrcode"), addr);
-
-                document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-heading'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + pkey + "</div></div>";
-
-                document.getElementById("qrcodepk").innerHTML = "";
-                new QRCode(document.getElementById("qrcodepk"), pkey);
-                document.body.scrollTop = document.documentElement.scrollTop = 0;
-                
-                break;
-            }
-        }
+    function details(){
+       
+     var wifPrivateKey= $("#detailsWIF").val(); 
+     wifPrivateKey = wifPrivateKey.trim();
+     var NETWORK = bitcoin.networks.bitcoin;
+     var wif = wifPrivateKey;
+     var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
+     var pubKey = keyPair.getPublicKeyBuffer();
+     var pubKeyHash = bitcoin.crypto.hash160(pubKey);
+     var pubKeyHex = pubKey.toString('hex');
+     var redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
+     var redeemScriptHex = redeemScript.toString('hex');
+     var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
+     var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
+     var newaddy = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
+        $("#detailsOutput").append("<p>WIF: "+ wif + "<div id='detailsPK'></div></p><div id='detailsAddr'>Address: "+newaddy+"</div><br><div id='detailsAddrQr'></div><br><p></p><p>Public Key: "+pubKeyHex+"</p><p>Redeem Script: "+redeemScriptHex+"</p>");
+         new QRCode(document.getElementById("detailsPK"), {
+            text: wif,
+            width: 128,
+            height: 128
+        });
+        new QRCode(document.getElementById("detailsAddrQr"), {
+            text: newaddy,
+            width: 128,
+            height: 128
+        });
     }
       
     function bulkAddress(){
@@ -546,7 +549,7 @@ function getByteCountSegwitP2SH(inputCount,outputCount,isMultisig,m,n) {
     
 $(document).ready( function() {
       $("#sweepkey").on('click', sweepKey);
-      $("#vanityBtn").on('click', vanity);
+      $("#detailsBtn").on('click', details);
       $("#clearBulk").on('click', clearBulk);
       Buffer = bitcoin.script.compile([]).constructor;
       $.ajax({
