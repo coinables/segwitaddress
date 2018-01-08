@@ -7,243 +7,150 @@
     <meta name="description" content="Create Segregated Witness (SegWit) Addresses in your browser that can be ran offline to create paper wallets or bulk addresses.">
     <meta name="keywords" content="Bitcoin, SegWit Paper, SegWit Address, P2WPKH generator, P2WPKH wallet, javascript, pay to witness">
 
-<style>
-    body, html {
-        padding: 12px;
-        font-family: "Verdana", "sans-serif";
-    }
-    a:link {
-    text-decoration: none;
-    }
-
-    a:visited {
-        text-decoration: none;
-    }
-    #share{
-        color: green;
-        font-size: 28px;
-        font-weight: bold;
-    }
-    #keep{
-        color: red;
-        font-size: 28px;
-        font-weight: bold;
-    }
-    #sweepcont{
-        width: 60%;
-    }
-    #wit{
-        background-color: black;
-        color: #ffeeff;
-    }
-    .label-default{
-        padding: 3px;
-        border: 1px solid #ccc;
-        border-radius: 2px;
-        text-decoration: none;
-        color: #222;
-    }
-    .label-primary{
-        padding: 3px;
-        border: 1px solid #0088ff;
-        background-color: #0088ff;
-        border-radius: 2px;
-        text-decoration: none;
-        color: white;
-    }
-    .label-success{
-        padding: 3px;
-        border: 1px solid #52BE80;
-        background-color: #52BE80;
-        border-radius: 2px;
-        text-decoration: none;
-        color: white;
-    }
-    #qrcam{
-        display: none;
-    }
-    #entropyCanvas{
-        display: none;
-    }
-    #entropyRef{
-        border: 1px solid #0088ff;
-        background-color: #0088ff;
-        color: #fff;
-        padding: 5px;
-    }
-    #sweepkey{
-        background-color: #52BE80;
-        color: #fff;
-    }
-    #btnBulk{
-        background-color: #F1C40F;
-        color: #fff;
-    }
-    #clearBulk{
-        background-color: #EC7063;
-        color: #fff;
-    }
-    #qrnotify{
-        display: none;
-    }
-    #qrnotify2{
-        display: none;
-    }
-    .hr {
-        height: 6px;
-        border: 0;
-        box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
-    }
-    .well{
-        padding: 16px;
-        border: 2px solid #aaa;
-        border-radius: 3px;
-        background-color: #ddd;
-        color: #000;
-        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
-    }
-    input{
-        width: 60%;
-        border-radius: 4px; 
-        background-color: #eee;
-        padding: 7px;
-        font-size: 21px;
-        border: 1px solid #999;
-    }
-    .btn{
-        border-radius: 4px; 
-        background-color: #fff;
-        padding: 7px;
-        font-size: 21px;
-        border: 1px solid #999;
-        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
-    }
-    #progbar{
-        background-color: #5DADE2;
-        height: 20px;
-    }
-    .panel-primary{
-        border: 2px solid #5DADE2;
-        border-radius: 3px;
-    }
-    .panel-heading{
-        background-color: #5DADE2;
-        color: #fff;
-        padding: 5px;
-    }
-    .panel-danger{
-        border: 2px solid #EC7063;
-        border-radius: 3px;
-    }
-    .panel-headingd{
-        background-color: #EC7063;
-        color: #fff;
-        padding: 5px;
-    }
-    .panel-body{
-        padding: 3px;
-    }
-    #detailsAddr{
-        text-align: right;
-    }
-    #detailsAddrQr{
-        display: block;
-        width: 140px;
-        float: right;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    
+    <!-- jQuery -->
     <script src="js/jquery-3.2.1.min.js"></script>
+    <!-- QRCode Webcam Scanner -->
     <script src="js/instascan.min.js"></script>
+    <!-- load bitcoinjs-lib -->
+    <script src="js/bitcoinjs-lib-3.1.1.js"></script>
+    <!-- big integer for mouse entropy -->
+    <script src="js/metropy.js"></script>
+    <!-- QRCode lib -->
+    <script type="text/javascript" src="js/qrcode.js"></script>
 </head>
+    
 <body>
-  <h1>SegWit Paper Wallet</h1><br>   
-  <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.<br><br>All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network. </div> 
     
-    
-    <br>
-    <a href="#entropyRef"><button id="entropyRef" onClick="return btnCreate();"  class="btn btn-primary">Generate New SegWit Address</button></a><br>
-    
-    
+    <h1>SegWit Paper Wallet</h1>
+        
+        <!-- introduction -->
+        <br>   
+            <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
+            <br>
+            <br>
+            All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network. 
+            </div> 
+        
+        <!-- Create Segwit Address -->
+        <br>
+        <a href="#entropyRef"><button id="entropyRef" onClick="return btnCreate();"  class="btn btn-primary">Generate New SegWit Address</button></a>
+        <br>
+        
+        <!-- mouse entropy canvas -->
         <canvas id="entropyCanvas" width="800" height="200" style="border: 1px solid black;"></canvas>
         <div class="progress progress-striped">
-        <div class="progress-bar progress-bar-info" style="width: 0%" id="progbar"></div>
+            <div class="progress-bar progress-bar-info" style="width: 0%" id="progbar"></div>
         </div>
         <div id="canvasCounter"></div>
    
-     
-    <table width="100%">
-    <tr>
-        <td width="50%"><span id="share">OK TO SHARE</span></td>
-        <td align="right"><span id="keep">KEEP PRIVATE</span></td>
-    </tr>
-    <tr>
-        <td>
-            <div id="qrcode"></div>
-            <div id="swaddr"></div>
-        </td>
-        <td align="right">
-            <div id="qrcodepk"></div>
-            <div id="swpk"></div>
-        </td>
-    </tr>
-    </table>
-    <br>
-    <hr class="hr">
-    <br>    
-    <h2>Sweep SegWit Private Key</h2>
-    <div id="sweepcont">
-    <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey">
-    <button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
-    <video id="qrcam"></video>
-    <br>
-    <input type="text" class="form-control input-lg" placeholder="Destination Address" id="toaddress">
-    <button class="btn btn-default" onClick="return turnOnWC2();">SCAN WITH WEBCAM</button><span id="qrnotify2" class="label label-success">QR CODE SCANNED</span>
-    <br>
-    <textarea id="inputdata" cols="100" rows="7"></textarea>
-    <input type="number" class="form-control input-lg" id="satperbyte"> <small>Miner Fee Satoshis Per Byte</small><br><br>
-    <button class="btn btn-success" id="sweepkey">TRANSFER ALL FUNDS</button><br>
-    </div>
-    <div id="results"></div>
-    <br>
-    <hr class="hr">
-    <br>
-    <h2>Bulk Keys</h2>
-    <small>Prints in CSV format. 300 will take about 10 seconds.</small><br>
-    <h4>Amount to Generate:</h4> 
-    <input type="number" id="bulknum"><br>
-    <button id="btnBulk" onClick="return bulkAddress();" class="btn btn-warning">Bulk Generate</button> <button class="btn btn-danger" id="clearBulk">Clear</button><br>
+        <!-- QR Code Output -->
+        <table width="100%">
+        <tr>
+            <td width="50%"><span id="share">OK TO SHARE</span></td>
+            <td align="right"><span id="keep">KEEP PRIVATE</span></td>
+        </tr>
+        <tr>
+            <td>
+                <div id="qrcode"></div>
+                <div id="swaddr"></div>
+            </td>
+            <td align="right">
+                <div id="qrcodepk"></div>
+                <div id="swpk"></div>
+            </td>
+        </tr>
+        </table>
     
-    <br>
-    <div id="bulkkeys" class="well well-lg"></div><br>
-    <br>
-    <hr class="hr">
-    <br>
-    <h2>Details</h2>
-    <p>Enter a WIF private key to generate its corresponding segwit address.</p>
+        <br>
+        <hr class="hr">
+        <br>    
+        
+        <!-- Sweep Key -->
+        <h2>Sweep SegWit Private Key</h2>
+        <div id="sweepcont">
+            <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey">
+            <button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
+            
+            <video id="qrcam"></video>
     
-    <p>WIF Private Key: <input type="text" id="detailsWIF" ></p>
-    <button id="detailsBtn" class="btn btn-info">Show Details</button>
-    <br>
-    <div id="detailsOutput" class="well well-lg"></div><br>
-    <br>
+            <br>
     
+            <input type="text" class="form-control input-lg" placeholder="Destination Address" id="toaddress">
+            <button class="btn btn-default" onClick="return turnOnWC2();">SCAN WITH WEBCAM</button><span id="qrnotify2" class="label label-success">QR CODE SCANNED</span>
+            
+            <br>
+            
+            <textarea id="inputdata" cols="100" rows="7"></textarea>
+            <input type="number" class="form-control input-lg" id="satperbyte"> <small>Miner Fee Satoshis Per Byte</small>
+            <br>
+            <br>
+            <button class="btn btn-success" id="sweepkey">TRANSFER ALL FUNDS</button>
+            <br>
+        </div>
     
-    <br><br>
+        <!-- Sweep Transaction Output -->
+        <div id="results"></div>
     
+        <br>
+        <hr class="hr">
+        <br>
+
+        <!-- Bulk Keys Generator -->
+        <h2>Bulk Keys</h2>
+        <small>Prints in CSV format. 300 will take about 10 seconds.</small>
+        <br>
+        <h4>Amount to Generate:</h4> 
+        <input type="number" id="bulknum">
+        <br>
+        <button id="btnBulk" onClick="return bulkAddress();" class="btn btn-warning">Bulk Generate</button> <button class="btn btn-danger" id="clearBulk">Clear</button>
+        <br>
+        <br>
+    
+        <div id="bulkkeys" class="well well-lg"></div>
+
+        <br>
+        <br>
+        <hr class="hr">
+        <br>
+    
+        <!-- Brain Wallet -->
+        <h2>Brain Wallet</h2>
+        <p>A brain wallet is a private key derived from some arbitary data provided by the user. Brain wallets come with a high risk of losing funds through brute forcing. Some people use books, birth dates, poems or song lyrics -- these people lose all their money. Don't lose your money.</p>
+    
+        <p>Brain Wallet Input: <input type="text" id="brainWalletInput" ></p>
+        <a href="#entropyRef"><button id="brainBtn" class="btn btn-info">Create</button></a>
+        <br>
+    
+        <br>
+        <hr class="hr">
+        <br>
+        
+        <!-- Details Section -->
+        <h2>Details</h2>
+        <p>Enter a WIF private key to generate its corresponding segwit address.</p>
+        <p>WIF Private Key: <input type="text" id="detailsWIF" ></p>
+        <button id="detailsBtn" class="btn btn-info">Show Details</button>
+        <br>
+        <div id="detailsOutput" class="well well-lg"></div>
+        <br>
+    
+        <br>
+        <br>
+        <br>
+    
+    <!-- footer -->
     <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
     <a href="https://github.com/coinables/segwitaddress"><span class="label-primary">OPEN SOURCE</span></a>
     <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label-success">BITCOINJS</span></a>
- <script src="js/bitcoinjs-lib-3.1.1.js"></script>
- <script src="js/metropy.js"></script>
- <script type="text/javascript" src="js/qrcode.js"></script>
+ 
  
   <script>
-//functions used below are from github repo: https://github.com/bip32JP/bip32JP.github.io/tree/master/segwit  
-//https://bip32jp.github.io/segwit
+
   function generateNewKeyPair(){
       var NETWORK = bitcoin.networks.bitcoin;
       var wif = bitcoin.ECPair.makeRandom({network: NETWORK}).toWIF();
-      //var wif = "KyjcD49goTAdFgYj38gnvpwMa1vzaHLoKfJcDFgGr3fikun5DiqL";
       var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
       var pubKey = keyPair.getPublicKeyBuffer();
       var pubKeyHash = bitcoin.crypto.hash160(pubKey);
@@ -256,102 +163,148 @@
           swAddress: newaddy
       };
   }
-    function btnCreate(){
-        $("#entropyCanvas").css("display","block");
-         $("#entropywell").css("display","block");
-        function getMousePos(canvas, evt) {
-            var rect = canvas.getBoundingClientRect();
-            return {
-              x: evt.clientX - rect.left,
-              y: evt.clientY - rect.top
-            };
+      
+      
+function btnCreate(){
+    $("#entropyCanvas").css("display","block");
+    $("#entropywell").css("display","block");
+
+    //get mouse position to use for randomness
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+    }
+
+    var entropy = "";
+    var canvas = document.getElementById('entropyCanvas');
+    var c2d = canvas.getContext("2d");
+    c2d.font = "30px Arial";
+    c2d.fillText("Move Your Mouse Around Here For Randomness",10,50);
+
+    canvas.addEventListener('mousemove', function(evt) {
+    //append until a length of 8192    
+    if(entropy.length < 8192){
+        var mousePos = getMousePos(canvas, evt);   
+        //append mouse position to entropy source
+        entropy += mousePos.x + mousePos.y;
+
+        //update progress bar
+        entropyCalcBar = entropy.length / 8192;
+        entropyPercent = entropyCalcBar * 100;
+        entropyPercentFixed = entropyPercent.toFixed(0);
+        entropyBar = "width: "+entropyPercentFixed+"%";
+        document.getElementsByTagName('div')[2].setAttribute("style", entropyBar);
+        document.getElementById("canvasCounter").innerHTML = entropy.length+"/8192";   
+    } else {
+        //length requirement met, hide entropy canvas
+        $("#entropyCanvas").css("display","none");
+        $("#entropywell").css("display","none");
+        $("#canvasCounter").html("");
+        //create a key pair based on the 8192 random integers through sha256 hash with the addMouseEntropy function 
+         me.addMouseEntropy(entropy, function(maddr, mpk){
+             document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
+             
+            //blank out any existing qr code
+            document.getElementById("qrcode").innerHTML = "";
+            //create new qrcode with segwit address
+            new QRCode(document.getElementById("qrcode"), maddr);
+
+            document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + mpk + "</div></div>";
+
+            //blank out any exisitng private key qr code
+            document.getElementById("qrcodepk").innerHTML = "";
+            //create new qrcode with private key
+            new QRCode(document.getElementById("qrcodepk"), mpk);
+         
+            //zero out entropy source
+            entropy = "";
+         });
+    }               
+
+    }, false);
+
+
+}
+            
+function brainWalletCreate(){
+    //fetch user input
+    var brainInput = $("#brainWalletInput").val();
+    //create a key pair based on the sha256 hash of the users input
+    me.addMouseEntropy(brainInput, function(maddr, mpk){
+        document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
+
+        //blank out any existing qr code
+        document.getElementById("qrcode").innerHTML = "";
+        //create new qrcode with segwit address
+        new QRCode(document.getElementById("qrcode"), maddr);
+
+        document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + mpk + "</div></div>";
+
+        //blank out any exisitng private key qr code
+        document.getElementById("qrcodepk").innerHTML = "";
+        //create new qrcode with private key
+        new QRCode(document.getElementById("qrcodepk"), mpk);
+
+        //zero out brain wallet input
+        brainInput = "";
+    });
+}  
+      
+function details(){
+    //fetch private key from input
+    var wifPrivateKey= $("#detailsWIF").val(); 
+    //remove any spaces
+    wifPrivateKey = wifPrivateKey.trim();
+    var NETWORK = bitcoin.networks.bitcoin;
+    var wif = wifPrivateKey;
+    var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
+    var pubKey = keyPair.getPublicKeyBuffer();
+    var pubKeyHash = bitcoin.crypto.hash160(pubKey);
+    var pubKeyHex = pubKey.toString('hex');
+    var redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
+    var redeemScriptHex = redeemScript.toString('hex');
+    var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
+    var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
+    var newaddy = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
+    //output details
+    $("#detailsOutput").html("<p>WIF: "+ wif + "<div id='detailsPK'></div></p><div id='detailsAddr'>Address: "+newaddy+"</div><br><div id='detailsAddrQr'></div><br><p></p><p>Public Key: "+pubKeyHex+"</p><p>Redeem Script: "+redeemScriptHex+"</p><br>");
+
+    //create details private key qrcode
+    new QRCode(document.getElementById("detailsPK"), {
+        text: wif,
+        width: 128,
+        height: 128
+    });
+
+    //create details address qrcode
+    new QRCode(document.getElementById("detailsAddrQr"), {
+        text: newaddy,
+        width: 128,
+        height: 128
+    });
+}
+      
+function bulkAddress(){
+    var keynum = document.getElementById("bulknum").value;
+        if(keynum < 1001){
+                for(i=0; i < keynum; i++){
+                    var keys = generateNewKeyPair();
+                    var swaddress = keys.swAddress;
+                    var pkey = keys.wifPrivateK;
+                    var visualnum = i +1;
+                    $("#bulkkeys").append("<p>"+ visualnum + ", &quot;"+swaddress+"&quot;, &quot;"+pkey+"&quot;</p>");
+                }
+        } else {
+            alert("1000 is the max bro");
         }
-          var entropy = "";
-          var canvas = document.getElementById('entropyCanvas');
-          var c2d = canvas.getContext("2d");
-          c2d.font = "30px Arial";
-          c2d.fillText("Move Your Mouse Around Here For Randomness",10,50);
+}  
 
-          canvas.addEventListener('mousemove', function(evt) {
-            if(entropy.length < 8192){
-                var mousePos = getMousePos(canvas, evt);   
-                entropy += mousePos.x + mousePos.y;
-                entropyCalcBar = entropy.length / 8192;
-                entropyPercent = entropyCalcBar * 100;
-                entropyPercentFixed = entropyPercent.toFixed(0);
-                entropyBar = "width: "+entropyPercentFixed+"%";
-                document.getElementsByTagName('div')[2].setAttribute("style", entropyBar);
-                document.getElementById("canvasCounter").innerHTML = entropy.length+"/8192";   
-            } else {
-                $("#entropyCanvas").css("display","none");
-                $("#entropywell").css("display","none");
-                $("#canvasCounter").html("");
-                 me.addMouseEntropy(entropy, function(maddr, mpk){
-                     document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
-        
-                    document.getElementById("qrcode").innerHTML = "";
-                    new QRCode(document.getElementById("qrcode"), maddr);
-
-                    document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + mpk + "</div></div>";
-
-                    document.getElementById("qrcodepk").innerHTML = "";
-                    new QRCode(document.getElementById("qrcodepk"), mpk);
-                    
-                 entropy = "";
-                 });
-            }               
-            
-          }, false);
-        
-        
-    }
-            
-    function details(){
-       
-     var wifPrivateKey= $("#detailsWIF").val(); 
-     wifPrivateKey = wifPrivateKey.trim();
-     var NETWORK = bitcoin.networks.bitcoin;
-     var wif = wifPrivateKey;
-     var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
-     var pubKey = keyPair.getPublicKeyBuffer();
-     var pubKeyHash = bitcoin.crypto.hash160(pubKey);
-     var pubKeyHex = pubKey.toString('hex');
-     var redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
-     var redeemScriptHex = redeemScript.toString('hex');
-     var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
-     var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
-     var newaddy = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
-        $("#detailsOutput").html("<p>WIF: "+ wif + "<div id='detailsPK'></div></p><div id='detailsAddr'>Address: "+newaddy+"</div><br><div id='detailsAddrQr'></div><br><p></p><p>Public Key: "+pubKeyHex+"</p><p>Redeem Script: "+redeemScriptHex+"</p><br>");
-         new QRCode(document.getElementById("detailsPK"), {
-            text: wif,
-            width: 128,
-            height: 128
-        });
-        new QRCode(document.getElementById("detailsAddrQr"), {
-            text: newaddy,
-            width: 128,
-            height: 128
-        });
-    }
-      
-    function bulkAddress(){
-        var keynum = document.getElementById("bulknum").value;
-            if(keynum < 1001){
-                    for(i=0; i < keynum; i++){
-                        var keys = generateNewKeyPair();
-                        var swaddress = keys.swAddress;
-                        var pkey = keys.wifPrivateK;
-                        var visualnum = i +1;
-                        $("#bulkkeys").append("<p>"+ visualnum + ", &quot;"+swaddress+"&quot;, &quot;"+pkey+"&quot;</p>");
-                    }
-            } else {
-                alert("1000 is the max bro");
-            }
-    }  
-      
-    function clearBulk(){
-        $("#bulkkeys").html("");
-    }  
+function clearBulk(){
+    $("#bulkkeys").html("");
+}  
       
 function sweepKey() {
      var DOUBLE_TX = false
@@ -359,15 +312,18 @@ function sweepKey() {
      var API_DOMAIN = "https://api.smartbit.com.au"
      var EXPLORER_DOMAIN = "https://www.smartbit.com.au"
      var Buffer = null
-   
+    
+     //fetch private key from input
      var WIF = $("#wifprivatekey").val();
      WIF = WIF.trim();
-      
+    
+    //check if empty
       if (WIF == "") {
         alert("The WIF Private key must be entered to send!");
         return;
       };
       
+     //check address filled out
       var toAddress = $("#toaddress").val();
       toAddress = toAddress.trim();
       if (toAddress == "") {
@@ -375,6 +331,7 @@ function sweepKey() {
         return;
       }; 
     
+      //convert private key to address
       var keyPair = bitcoin.ECPair.fromWIF(WIF, NETWORK);
       var pubKey = keyPair.getPublicKeyBuffer();
       var pubKeyHash = bitcoin.crypto.hash160(pubKey);
@@ -383,7 +340,8 @@ function sweepKey() {
       var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
       var P2SHAddress = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
    
-     console.log(P2SHAddress);
+      //console.log(P2SHAddress);
+      //get UTXOs for address of private key
       var data
       $.ajax({
         async: true,
@@ -398,24 +356,30 @@ function sweepKey() {
               "satoshis": item.value_int
             }
           })
+          //output response into the inputdata element
           $("#inputdata").val(JSON.stringify(data, null, 2))
         }
       });
-         
+      
+      //validate key
       try {
         var keyPair = bitcoin.ECPair.fromWIF(WIF, NETWORK)
       } catch (e) {
         alert('Invalid WIF private key.')
         return
       }
+     //check UTXO
       var inputData = $("#inputdata").val()
       if (inputData == "") {
         alert("Fetching UTXOs, click TRANSFER again to finalize and sweep.")
         return
       }
       inputData = JSON.parse(inputData)
+    
+      //fetch to address
       var toAddressBox = $("#toaddress").val();
       var toAddress = toAddressBox;
+      //check if address fileld out
       if (toAddress == "") {
         alert("Please Enter Address to send to!")
         return
@@ -427,7 +391,8 @@ function sweepKey() {
           return
         }
       }
-
+      
+      //get fee rate from input
       var satPerByte = $("#satperbyte").val()
       if (satPerByte == "") {
         alert("Please enter Satoshi Per Byte Fee Rate!")
@@ -439,6 +404,8 @@ function sweepKey() {
       var redeemScript = bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash)
       var redeemScriptHash = bitcoin.crypto.hash160(redeemScript)
       var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash)
+      
+      //build transaction from utxo set
       var txb = new bitcoin.TransactionBuilder(NETWORK)
       for (var i = 0; i < inputData.length; i++) {
         txb.addInput(inputData[i].txid,
@@ -446,6 +413,7 @@ function sweepKey() {
                      0xffffffff,
                      scriptPubKey)
       }
+      //calculate tx size and fee
       var estimatedByteCount = getByteCountSegwitP2SH(inputData.length, 1)
       var estimatedFeeSatoshis = Math.ceil(estimatedByteCount * satPerByte)
       var totalSatoshis = inputData.reduce(function(total, item){return total += item.satoshis}, 0)
@@ -461,12 +429,15 @@ function sweepKey() {
       } else if (NETWORK.scriptHash == toAddressObj.version) {
         var sendToScriptPubkey = bitcoin.script.scriptHash.output.encode(toAddressObj.hash)
       }
+      //add output
       txb.addOutput(sendToScriptPubkey,
                     totalSatoshisMinusFee)
-      
+    
+      //sign all inputs
       for (var i = 0; i < inputData.length; i++) {
         txb.sign(i, keyPair, redeemScript, null, inputData[i].satoshis)
       }
+    
       var tx = txb.build()
       var tx_txid = tx.getId()
       var tx_raw = tx.toHex()
@@ -553,6 +524,7 @@ function getByteCountSegwitP2SH(inputCount,outputCount,isMultisig,m,n) {
 $(document).ready( function() {
       $("#sweepkey").on('click', sweepKey);
       $("#detailsBtn").on('click', details);
+      $("#brainBtn").on('click', brainWalletCreate);
       $("#clearBulk").on('click', clearBulk);
       Buffer = bitcoin.script.compile([]).constructor;
       $.ajax({
