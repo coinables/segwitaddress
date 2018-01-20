@@ -59,6 +59,14 @@
         text-decoration: none;
         color: white;
     }
+    .label-reference{
+        padding: 3px;
+        border: 1px solid #333;
+        background-color: grey;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
     #qrcam{
         display: none;
     }
@@ -173,13 +181,13 @@
         
         <!-- introduction -->
         <br>   
-            <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses and transactions. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
+            <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Segregated Witness (SegWit) Pay To Witness Public Key Hash wrapped in a Pay to Script Hash (P2SH-P2WPKH) addresses. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
             <br>
             <br>
             All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network.
             <br>
             <br>
-            You can enable testnet mode by adding  ?testnet=true  to the end of the url.
+                You can enable testnet mode by adding  <span class="label label-reference">?testnet=true</span>  to the end of the url.
             </div> 
         
         <!-- Create Segwit Address -->
