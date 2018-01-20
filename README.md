@@ -9,7 +9,7 @@ the BitcoinJS library and was built from BIP32JP's SegWit repo (https://github.c
 
  * Keypair generation with QR Codes
  * Bulk address generator
- * Key Sweeping Tool to move all funds belonging to a single SegWit private key. 
+ * Key Sweeping Tool with custom fee to move all funds belonging to a single SegWit private key. 
  * Details section to validate private keys and to view corresponding segwit address, public key and redeem script.
  * Segwit brain wallet
  
@@ -20,6 +20,11 @@ the BitcoinJS library and was built from BIP32JP's SegWit repo (https://github.c
      Example: https://segwitaddress.org/?testnet=true
      Or locally: localhost/segwitaddress/?testnet=true
 
+3. Troubleshooting
+
+ * If your webcam QR code scanner is not working when using an offline version it is recommended to try running the page from a local XAMPP server.
+ 
+ 
 Please feel encouraged to contribute. 	
 		
 =======
