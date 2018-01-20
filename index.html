@@ -163,11 +163,13 @@
     <script src="js/metropy.js"></script>
     <!-- QRCode lib -->
     <script type="text/javascript" src="js/qrcode.js"></script>
+    <!-- Network specific methods -->
+    <script type="text/javascript" src="js/network.js"></script>
 </head>
     
 <body>
     
-    <h1>SegWit Paper Wallet</h1>
+    <script type="text/javascript">document.write(headerHtml())</script>
         
         <!-- introduction -->
         <br>   
@@ -293,7 +295,7 @@
   <script>
 
   function generateNewKeyPair(){
-      var NETWORK = bitcoin.networks.bitcoin;
+      var NETWORK = currentNetwork();
       var wif = bitcoin.ECPair.makeRandom({network: NETWORK}).toWIF();
       var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
       var pubKey = keyPair.getPublicKeyBuffer();
@@ -348,7 +350,7 @@ function btnCreate(){
         $("#entropywell").css("display","none");
         $("#canvasCounter").html("");
         //create a key pair based on the 8192 random integers through sha256 hash with the addMouseEntropy function 
-         me.addMouseEntropy(entropy, function(maddr, mpk){
+         me.addMouseEntropy(entropy, currentNetwork(), function(maddr, mpk){
              document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
              
             //blank out any existing qr code
@@ -377,7 +379,7 @@ function brainWalletCreate(){
     //fetch user input
     var brainInput = $("#brainWalletInput").val();
     //create a key pair based on the sha256 hash of the users input
-    me.addMouseEntropy(brainInput, function(maddr, mpk){
+    me.addMouseEntropy(brainInput, currentNetwork(), function(maddr, mpk){
         document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
 
         //blank out any existing qr code
@@ -402,7 +404,7 @@ function details(){
     var wifPrivateKey= $("#detailsWIF").val(); 
     //remove any spaces
     wifPrivateKey = wifPrivateKey.trim();
-    var NETWORK = bitcoin.networks.bitcoin;
+    var NETWORK = currentNetwork();
     var wif = wifPrivateKey;
     var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
     var pubKey = keyPair.getPublicKeyBuffer();
@@ -452,9 +454,9 @@ function clearBulk(){
       
 function sweepKey() {
      var DOUBLE_TX = false
-     var NETWORK = bitcoin.networks.bitcoin
-     var API_DOMAIN = "https://api.smartbit.com.au"
-     var EXPLORER_DOMAIN = "https://www.smartbit.com.au"
+     var NETWORK = currentNetwork();
+     var API_DOMAIN = apiDomain();
+     var EXPLORER_DOMAIN = explorerDomain();
      var Buffer = null
     
      //fetch private key from input
