@@ -323,8 +323,25 @@
       };
   }
   
- //generate bech32 address pair in console only by calling: bc.bech32Pair() 
- //please note the sweep function will not work with bec32 addresses at this time      
+ //generate bech32 address pair in console only by calling: bech32()
+ //please note the sweep function will not work with bech32 addresses at this time   
+function bech32(){
+     let createPair = JSON.parse(bc.bech32Pair());
+
+	 document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + createPair[0] + "</div></div>";
+             
+	//blank out any existing qr code
+	document.getElementById("qrcode").innerHTML = "";
+	//create new qrcode with segwit address
+	new QRCode(document.getElementById("qrcode"), createPair[0]);
+
+	document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + createPair[1] + "</div></div>";
+
+	//blank out any exisitng private key qr code
+	document.getElementById("qrcodepk").innerHTML = "";
+	//create new qrcode with private key
+	new QRCode(document.getElementById("qrcodepk"), createPair[1]);
+  }  
       
 function btnCreate(){
     $("#entropyCanvas").css("display","block");
