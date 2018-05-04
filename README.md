@@ -19,8 +19,17 @@ the BitcoinJS library and was built from BIP32JP's SegWit repo (https://github.c
  * You can enable testnet mode by adding  ?testnet=true  to the end of the url.
      Example: https://segwitaddress.org/?testnet=true
      Or locally: localhost/segwitaddress/?testnet=true
+    
+3. External Support
 
-3. Troubleshooting
+ * Samourai Wallet can sweep funds from private keys and QR codes generated with segwitaddress.org 
+ * Electrum can import private keys using the console and the `importprivkey()` command.
+   Import as P2SH segwit:  
+ 	`importprivkey('p2wpkh-p2sh:L5eaxGKPZZMnanjxDzBd82VaxnHAE6MmBojiEFAVTM9mWZEhMMqG')`
+   Import as native(bech32) segwit:  
+ 	`importprivkey('p2wpkh:L5eaxGKPZZMnanjxDzBd82VaxnHAE6MmBojiEFAVTM9mWZEhMMqG')`
+  
+4. Troubleshooting
 
  * If your webcam QR code scanner is not working when using an offline version it is recommended to try running the page from a local XAMPP server.
  
