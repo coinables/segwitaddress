@@ -439,6 +439,10 @@ function details(){
     var NETWORK = currentNetwork();
     var wif = wifPrivateKey;
     var keyPair = bitcoin.ECPair.fromWIF(wif, NETWORK);
+    if (!keyPair.compressed) {
+      alert("Segwit supports only compressed public keys");
+      return;
+    }
     var pubKey = keyPair.getPublicKeyBuffer();
     var pubKeyHash = bitcoin.crypto.hash160(pubKey);
     var pubKeyHex = pubKey.toString('hex');
