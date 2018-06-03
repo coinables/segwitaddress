@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html>
+    
+<head>
+    <title>SegWit Paper Wallet</title>
+    <meta name="description" content="Create Segregated Witness (SegWit) Addresses in your browser that can be ran offline to create paper wallets or bulk addresses.">
+    <meta name="keywords" content="Bitcoin, SegWit Paper, SegWit Address, P2WPKH generator, bech32, native segwit, P2WPKH wallet, javascript, pay to witness">
+
+    <style>
+    body, html {
+        padding: 12px;
+        font-family: "Verdana", "sans-serif";
+    }
+    a:link {
+    text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+    #share{
+        color: green;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #keep{
+        color: red;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #sweepcont{
+        width: 60%;
+    }
+    #wit{
+        background-color: black;
+        color: #ffeeff;
+    }
+    .label-default{
+        padding: 3px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        text-decoration: none;
+        color: #222;
+    }
+    .label-primary{
+        padding: 3px;
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-success{
+        padding: 3px;
+        border: 1px solid #52BE80;
+        background-color: #52BE80;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-reference{
+        padding: 3px;
+        border: 1px solid #333;
+        background-color: grey;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    #qrcam{
+        display: none;
+    }
+    #entropyCanvas{
+        display: none;
+    }
+    #entropyRef{
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        color: #fff;
+        padding: 5px;
+    }
+    #sweepkey{
+        background-color: #52BE80;
+        color: #fff;
+    }
+    #btnBulk{
+        background-color: #F1C40F;
+        color: #fff;
+    }
+    #clearBulk{
+        background-color: #EC7063;
+        color: #fff;
+    }
+    #qrnotify{
+        display: none;
+    }
+    #qrnotify2{
+        display: none;
+    }
+    .hr {
+        height: 6px;
+        border: 0;
+        box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    .well{
+        padding: 16px;
+        border: 2px solid #aaa;
+        border-radius: 3px;
+        background-color: #ddd;
+        color: #000;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    input{
+        width: 60%;
+        border-radius: 4px; 
+        background-color: #eee;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+    }
+    .btn{
+        border-radius: 4px; 
+        background-color: #fff;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    #progbar{
+        background-color: #5DADE2;
+        height: 20px;
+    }
+    .panel-primary{
+        border: 2px solid #5DADE2;
+        border-radius: 3px;
+    }
+    .panel-heading{
+        background-color: #5DADE2;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-danger{
+        border: 2px solid #EC7063;
+        border-radius: 3px;
+    }
+    .panel-headingd{
+        background-color: #EC7063;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-body{
+        padding: 3px;
+    }
+    #detailsAddr{
+        text-align: right;
+    }
+    #detailsAddrQr{
+        display: block;
+        width: 140px;
+        float: right;
+    }
+    </style>
+    
+    <!-- jQuery -->
+    <script src="../js/jquery-3.2.1.min.js"></script>
+    <!-- buidl.js (bitcoinjs-lib wrapper) -->
+    <script src="buidl.js"></script>
+	<!-- QRCode library -->
+    <script type="text/javascript" src="../js/qrcode.js"></script>
+    
+</head>
+    
+<body>
+    <h1>Bech32 Paper Wallet</h1>
+        
+        <!-- introduction -->
+        <br>   
+            <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Native Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
+            <br>
+            <br>
+            All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network.
+            <br>
+            <br>
+                You can enable testnet mode by adding  <span class="label label-reference">?testnet=true</span>  to the end of the url.
+            </div> 
+        
+        <!-- Create Segwit Address -->
+        <br>
+        <a href="#entropyRef"><button id="entropyRef" onClick="return btnCreate();"  class="btn btn-primary">Generate New SegWit Address</button></a>
+        <br>
+        
+        <!-- mouse entropy canvas -->
+        <canvas id="entropyCanvas" width="800" height="200" style="border: 1px solid black;"></canvas>
+        <div class="progress progress-striped">
+            <div class="progress-bar progress-bar-info" style="width: 0%" id="progbar"></div>
+        </div>
+        <div id="canvasCounter"></div>
+   
+        <!-- QR Code Output -->
+        <table width="100%">
+        <tr>
+            <td width="50%"><span id="share">OK TO SHARE</span></td>
+            <td align="right"><span id="keep">KEEP PRIVATE</span></td>
+        </tr>
+        <tr>
+            <td>
+                <div id="qrcode"></div>
+                <div id="swaddr"></div>
+            </td>
+            <td align="right">
+                <div id="qrcodepk"></div>
+                <div id="swpk"></div>
+            </td>
+        </tr>
+        </table>
+    
+        <br>
+        <hr class="hr">
+        <br>    
+        
+        <!-- Sweep Key -->
+        
+
+        <!-- Bulk Keys Generator -->
+        <h2>Bulk Keys</h2>
+        <small>Prints in CSV format. 300 will take about 10 seconds.</small>
+        <br>
+        <h4>Amount to Generate:</h4> 
+        <input type="number" id="bulknum">
+        <br>
+        <button id="btnBulk" onClick="return bulkAddress();" class="btn btn-warning">Bulk Generate</button> <button class="btn btn-danger" id="clearBulk">Clear</button>
+        <br>
+        <br>
+    
+        <div id="bulkkeys" class="well well-lg"></div>
+
+        <br>
+        <br>
+        <hr class="hr">
+        <br>
+    
+        <!-- Brain Wallet -->
+        <h2>Brain Wallet</h2>
+        <p>A brain wallet is a private key derived from some arbitrary data provided by the user. Brain wallets come with a high risk of losing funds through brute forcing. Some people use books, birth dates, poems or song lyrics -- these people lose all their money. Don't lose your money.</p>
+    
+        <p>Brain Wallet Input: <input type="text" id="brainWalletInput" ></p>
+        <a href="#entropyRef"><button id="brainBtn" class="btn btn-info">Create</button></a>
+        <br>
+    
+        <br>
+        <hr class="hr">
+        <br>
+        
+        <!-- Details Section -->
+        <h2>Details</h2>
+        <p>Enter a WIF private key to generate its corresponding segwit address.</p>
+        <p>WIF Private Key: <input type="text" id="detailsWIF" ></p>
+        <button id="detailsBtn" class="btn btn-info">Show Details</button>
+        <br>
+        <div id="detailsOutput" class="well well-lg"></div>
+        <br>
+    
+        <br>
+        <br>
+        <br>
+    
+    <!-- footer -->
+    <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
+    <a href="https://github.com/coinables/segwitaddress"><span class="label-primary">OPEN SOURCE</span></a>
+    <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label-success">BITCOINJS</span></a>
+ 
+ 
+  <script>
+  
+  function currentNetwork(){
+	let urlGet = window.location.href;
+	let url = new URL(urlGet);
+	let networkGet = url.searchParams.get("testnet");
+	let evalBoolean = networkGet === "true" ? "bitcoin.networks.testnet" : null;
+	return evalBoolean;
+  }
+
+      
+function btnCreate(){
+    $("#entropyCanvas").css("display","block");
+    $("#entropywell").css("display","block");
+
+    //get mouse position to use for randomness
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+    }
+
+    var entropy = "";
+    var canvas = document.getElementById('entropyCanvas');
+    var c2d = canvas.getContext("2d");
+    c2d.font = "30px Arial";
+    c2d.fillText("Move Your Mouse Around Here For Randomness",10,50);
+
+    canvas.addEventListener('mousemove', function(evt) {
+    //append until a length of 8192    
+    if(entropy.length < 8192){
+        var mousePos = getMousePos(canvas, evt);   
+        //append mouse position to entropy source
+        entropy += mousePos.x + mousePos.y;
+
+        //update progress bar
+        entropyCalcBar = entropy.length / 8192;
+        entropyPercent = entropyCalcBar * 100;
+        entropyPercentFixed = entropyPercent.toFixed(0);
+        entropyBar = "width: "+entropyPercentFixed+"%";
+        document.getElementsByTagName('div')[2].setAttribute("style", entropyBar);
+        document.getElementById("canvasCounter").innerHTML = entropy.length+"/8192";   
+    } else {
+        //length requirement met, hide entropy canvas
+        $("#entropyCanvas").css("display","none");
+        $("#entropywell").css("display","none");
+        $("#canvasCounter").html("");
+        //create a key pair based on the 8192 random integers through sha256 hash with the addMouseEntropy function 
+		let evalNet = currentNetwork() === "bitcoin.networks.testnet" ? "testnet" : null;
+        let entropyPair = buidl.createFrom(entropy, evalNet);
+		
+             document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + entropyPair.p2wpkh + "</div></div>";
+             
+            //blank out any existing qr code
+            document.getElementById("qrcode").innerHTML = "";
+            //create new qrcode with segwit address
+            new QRCode(document.getElementById("qrcode"), entropyPair.p2wpkh);
+
+            document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + entropyPair.pk + "</div></div>";
+
+            //blank out any exisitng private key qr code
+            document.getElementById("qrcodepk").innerHTML = "";
+            //create new qrcode with private key
+            new QRCode(document.getElementById("qrcodepk"), entropyPair.pk);
+         
+            //zero out entropy source
+            entropy = "";
+			//zero out pk
+			entropyPair = "";
+         
+    }               
+
+    }, false);
+
+
+}
+            
+function brainWalletCreate(){
+    //fetch user input
+    var brainInput = $("#brainWalletInput").val();
+    //create a key pair based on the sha256 hash of the users input
+	let evalNet = currentNetwork() === "bitcoin.networks.testnet" ? "testnet" : null;
+    var brainPair = buidl.createFrom(brainInput, evalNet);
+             document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + brainPair.p2wpkh + "</div></div>";
+             
+            //blank out any existing qr code
+            document.getElementById("qrcode").innerHTML = "";
+            //create new qrcode with segwit address
+            new QRCode(document.getElementById("qrcode"), brainPair.p2wpkh);
+
+            document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + brainPair.pk + "</div></div>";
+
+            //blank out any exisitng private key qr code
+            document.getElementById("qrcodepk").innerHTML = "";
+            //create new qrcode with private key
+            new QRCode(document.getElementById("qrcodepk"), brainPair.pk);
+
+        //zero out brain wallet input
+        brainInput = "";
+		brainPair = "";
+    
+}  
+      
+function details(){
+    //fetch private key from input
+    let wifPrivateKey= $("#detailsWIF").val(); 
+    //remove any spaces
+    wifPrivateKey = wifPrivateKey.trim();
+    let evalNet = currentNetwork() === "bitcoin.networks.testnet" ? "testnet" : null;
+    let wif = wifPrivateKey;
+    let keyPair = buidl.getDetails(wif, evalNet);
+    if (keyPair.publicKey.length > 80) {
+      alert("Segwit supports only compressed public keys");
+      return;
+    }
+   
+    let pubKeyHex = keyPair.publicKey;
+    
+    let newaddy = keyPair.p2wpkh;
+    //output details
+    $("#detailsOutput").html("<p><b>WIF:</b> "+ wif + "<div id='detailsPK'></div></p><div id='detailsAddr'><b>Address:</b> "+newaddy+"</div><br><div id='detailsAddrQr'></div><br><p></p><p><b>Public Key:</b> "+pubKeyHex+"</p><br><br><br>");
+
+    //create details private key qrcode
+    new QRCode(document.getElementById("detailsPK"), {
+        text: wif,
+        width: 128,
+        height: 128
+    });
+
+    //create details address qrcode
+    new QRCode(document.getElementById("detailsAddrQr"), {
+        text: newaddy,
+        width: 128,
+        height: 128
+    });
+}
+      
+function bulkAddress(){
+    var keynum = document.getElementById("bulknum").value;
+        if(keynum < 1001){
+                for(i=0; i < keynum; i++){
+                    var keys = buidl.getNewAddress();
+                    var swaddress = keys.p2wpkh;
+                    var pkey = keys.pk;
+                    var visualnum = i +1;
+                    $("#bulkkeys").append("<p>"+ visualnum + ", &quot;"+swaddress+"&quot;, &quot;"+pkey+"&quot;</p>");
+                }
+        } else {
+            alert("1000 is the max bro");
+        }
+}  
+
+function clearBulk(){
+    $("#bulkkeys").html("");
+}  
+               
+    
+$(document).ready( function() {
+      $("#detailsBtn").on('click', details);
+      $("#brainBtn").on('click', brainWalletCreate);
+      $("#clearBulk").on('click', clearBulk);
+    
+      $.ajax({
+        async: true,
+        type: "GET",
+        url: "https://bws.bitpay.com/bws/api/v2/feelevels",
+        success: function(result) {
+          var satPerByte = Math.ceil(result.filter(function(item){ return item.level == "superEconomy" })[0].feePerKb / 1000)
+          var calcSat = satPerByte / 2;
+          $("#satperbyte").val(calcSat.toFixed(0));
+        }
+      });
+});
+     
+  
+  </script>
+    
+ 
+    
+<script>
+//redirect https if not local
+if (window.location.host.indexOf('github.io') > -1 && window.location.protocol != "https:"){
+    window.location.protocol = "https";
+}
+</script>    
+</body>
+</html>
