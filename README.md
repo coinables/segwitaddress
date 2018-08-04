@@ -29,12 +29,12 @@ the BitcoinJS library and was built from BIP32JP's SegWit repo (https://github.c
    Import as native(bech32) segwit:  
  	`importprivkey('p2wpkh:L5eaxGKPZZMnanjxDzBd82VaxnHAE6MmBojiEFAVTM9mWZEhMMqG')`
   
-4. Troubleshooting
+4. Contributing
 
- * If your webcam QR code scanner is not working when using an offline version it is recommended to try running the page from a local XAMPP server.
+ * Please feel encouraged to contribute to this project. 
+ * Anyone can create an issue if you find a bug or have a suggestion. 
+ * If you are a developer feel free to submit a pull request or fork.
  
- 
-Please feel encouraged to contribute. 	
 		
 =======
 		
