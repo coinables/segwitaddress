@@ -30,7 +30,7 @@
         font-weight: bold;
     }
     #sweepcont{
-        width: 60%;
+        width: 95%;
     }
     #wit{
         background-color: black;
@@ -175,7 +175,7 @@
         
         <!-- introduction -->
         <br>   
-            <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Native Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses. Segwitaddress.org uses the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
+            <div class="well">Segwitaddress.org is an <a href="https://github.com/coinables/segwitaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator that utilizes Native Segregated Witness (SegWit) Pay To Witness Public Key Hash (P2WPKH) addresses. The bech32 version of this site uses <a href="https://github.com/coinables/buidljs">buidl.js</a> an easy to use layer on top of the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
             <br>
             <br>
             All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network.
@@ -217,8 +217,7 @@
         <br>
         <hr class="hr">
         <br>    
-        
-        <!-- Sweep Key -->
+ 
         
 
         <!-- Bulk Keys Generator -->
@@ -259,6 +258,69 @@
         <br>
         <div id="detailsOutput" class="well well-lg"></div>
         <br>
+		
+		<br>
+        <hr class="hr">
+        <br>
+		
+		<!-- Sweep Key -->
+        <h2>Build Raw Tx & Sign Offline</h2>
+        <div id="sweepcont">
+            
+		<p>This will allow you to build and sign a raw transaction offline. The signed raw transaction output can then 
+		be broadcast to any node or pushed through a <a href="https://live.blockcypher.com/btc-testnet/pushtx/">block explorer</a> that allows raw broadcasting. </p>	
+			<table width="100%">
+			<tr>
+				<td width="55%"><h3>INPUT</h3>
+					<table width="100%">
+					<tr>
+						
+						<td width="60%">Transaction Hash/ID</td>
+						<td width="10%">N Out</td>
+						<td width="20%">Input Value</td>
+					</tr>
+					<tr>
+						<input type="hidden" id="typei" size="10" value="b" readonly>	
+						<td><input type="text" id="txidi" size="100"></td>
+						<td><input type="text" id="outni" size="5"></td>
+						<td><input type="text" id="inputvalue" size="15"></td>
+					</tr>
+					<tr>
+						<td colspan="4">
+						<input type="password" id="wifi" size="100" placeholder="WIF Private Key">
+						</td>
+					</tr>
+					</table>
+				</td>
+				
+				<td><h3>OUTPUT(S)</h3>
+					<table width="100%">
+					<tr>
+						<td width="70%">Address</td>
+						<td width="30%">Output Value</td>
+						
+					</tr>
+					<tr>
+						<td><input type="text" id="outputi" size="40"></td>
+						<td><input type="text" id="amounti"></td>
+					</tr>
+					<tr>
+						<td><p>Change address (optional)</p><input type="text" id="changeout" size="40"></td>
+						<td><p>change amount (optional)</p><input type="text" id="changeamt"></td>
+					</tr>
+					</table>
+				</td>
+			</tr>
+			<tr>
+			</tr>
+			</table>
+			<br>
+			<center><button onclick="return createTx();" class="btn btn-info">Build & Sign Transaction</button></center>
+			<br>
+			<center><textarea id="signedtxoutput" cols="120" rows="12"></textarea></center>
+			
+        </div>
+    
     
         <br>
         <br>
@@ -272,7 +334,7 @@
  
   <script>
   
-  function currentNetwork(){
+ function currentNetwork(){
 	let urlGet = window.location.href;
 	let url = new URL(urlGet);
 	let networkGet = url.searchParams.get("testnet");
@@ -376,6 +438,7 @@ function brainWalletCreate(){
 }  
       
 function details(){
+
     //fetch private key from input
     let wifPrivateKey= $("#detailsWIF").val(); 
     //remove any spaces
@@ -410,10 +473,11 @@ function details(){
 }
       
 function bulkAddress(){
+	let evalNet = currentNetwork() === "bitcoin.networks.testnet" ? "testnet" : null;
     var keynum = document.getElementById("bulknum").value;
         if(keynum < 1001){
                 for(i=0; i < keynum; i++){
-                    var keys = buidl.getNewAddress();
+                    var keys = buidl.getNewAddress(evalNet);
                     var swaddress = keys.p2wpkh;
                     var pkey = keys.pk;
                     var visualnum = i +1;
@@ -427,6 +491,25 @@ function bulkAddress(){
 function clearBulk(){
     $("#bulkkeys").html("");
 }  
+
+function createTx(){
+    let evalNet = currentNetwork() === "bitcoin.networks.testnet" ? "testnet" : null;
+	let typei = document.getElementById("typei").value.trim();
+	let txidi = document.getElementById("txidi").value.trim();
+	let outni = parseInt(document.getElementById("outni").value.trim());
+	let inputvalue = parseInt(document.getElementById("inputvalue").value.trim());
+	inputvalue ? inputvalue : null;
+	let outputi = document.getElementById("outputi").value.trim();
+	let amounti = parseInt(document.getElementById("amounti").value.trim());
+	let changeout = document.getElementById("changeout").value.trim();
+	changeout ? changeout : null;
+	let changeamt = parseInt(document.getElementById("changeamt").value.trim());
+	changeamt ? changeamt : null;
+	let wifi = document.getElementById("wifi").value.trim();
+	let rawtx = buidl.createTransaction(typei, txidi, outni, outputi, amounti, wifi, changeout, changeamt, inputvalue, evalNet);
+	document.getElementById("signedtxoutput").innerHTML = "";
+	document.getElementById("signedtxoutput").innerHTML = rawtx.signedtx;
+}
                
     
 $(document).ready( function() {
