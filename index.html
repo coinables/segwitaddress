@@ -295,9 +295,10 @@
         <br>
 		Looking for bech32? <a href="https://segwitaddress.org/bech32">https://segwitaddress.org/bech32</a>	
         <br>
-		<br>
-		<br>
-    
+	<br>
+		Donate: 3PmAECWsic822v8bgHmJecJ9DzLfXkTKrP
+	<br>
+	<br>
     <!-- footer -->
     <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
     <a href="https://github.com/coinables/segwitaddress"><span class="label-primary">OPEN SOURCE</span></a>
@@ -327,8 +328,8 @@
 function bech32(){
      let createPair = JSON.parse(bc.bech32Pair());
 
-	 document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + createPair[0] + "</div></div>";
-             
+	document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + createPair[0] + "</div></div>";
+
 	//blank out any existing qr code
 	document.getElementById("qrcode").innerHTML = "";
 	//create new qrcode with segwit address
