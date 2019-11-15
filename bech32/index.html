@@ -159,6 +159,23 @@
         width: 140px;
         float: right;
     }
+	.wideinput{
+	width: 500px;
+	}
+	#afterclick{
+		display: none;
+	}
+	#getUTXO{
+		color: #fff;
+		background-color: #2FA4E7;;
+	}
+	#sweepbtn{
+		color: #fff;
+		background-color: #52BE80;
+	}
+	#satperbyte{
+		width: 100px;
+	}
     </style>
     
     <!-- jQuery -->
@@ -167,6 +184,8 @@
     <script src="buidl.js"></script>
 	<!-- QRCode library -->
     <script type="text/javascript" src="../js/qrcode.js"></script>
+	<!-- bitcoinjs library -->
+	<script type="text/javascript" src="bitcoin.js"></script>
     
 </head>
     
@@ -264,63 +283,155 @@
         <br>
 		
 		<!-- Sweep Key -->
-        <h2>Build Raw Tx & Sign Offline</h2>
-        <div id="sweepcont">
-            
-		<p>This will allow you to build and sign a raw transaction offline. The signed raw transaction output can then 
-		be broadcast to any node or pushed through a <a href="https://live.blockcypher.com/btc-testnet/pushtx/">block explorer</a> that allows raw broadcasting. </p>	
-			<table width="100%">
-			<tr>
-				<td width="55%"><h3>INPUT</h3>
-					<table width="100%">
-					<tr>
-						
-						<td width="60%">Transaction Hash/ID</td>
-						<td width="10%">N Out</td>
-						<td width="20%">Input Value</td>
-					</tr>
-					<tr>
-						<input type="hidden" id="typei" size="10" value="b" readonly>	
-						<td><input type="text" id="txidi" size="100"></td>
-						<td><input type="text" id="outni" size="5"></td>
-						<td><input type="text" id="inputvalue" size="15"></td>
-					</tr>
-					<tr>
-						<td colspan="4">
-						<input type="password" id="wifi" size="100" placeholder="WIF Private Key">
-						</td>
-					</tr>
-					</table>
-				</td>
+        <h2>Sweep a Bech32 Private Key</h2>
+		<b>Network: </b><select id="network">
+		<option value="test">Testnet</option>
+		<option value="main">Mainnet</option>
+		</select>
+		<br><br>
+
+		<b>Private Key: </b><input type="text" id="inputwif" class="wideinput">
+		<br>
+		<button id="getUTXO" class="btn btn-secondary">Find UTXOs</button>
+		<br><br>
+
+		<div id="afterclick">
+
+		<textarea id="inputdata" cols="100" rows="7"></textarea>
+		<br><br>
+
+		<b>Sweep to Address: </b><input type="text" id="outputaddr" class="wideinput">
+		<br><br>
+
+		<b>Fee (Sats per byte): </b><input type="number" id="satperbyte">
+		<br><br>
+
+		<button id="sweepbtn" class="btn btn-success">Transfer All Funds</button>
+		<div id="results"></div>
+		<script>
+
+		function getUTXOs(){
+		
+			$.ajax({
+				async: true,
+				type: "GET",
+				url: "https://bws.bitpay.com/bws/api/v2/feelevels",
+				success: function(result) {
+				  var satPerByte = Math.ceil(result.filter(function(item){ return item.level == "superEconomy" })[0].feePerKb / 1000)
+				  var calcSat = satPerByte / 2;
+				  $("#satperbyte").val(calcSat.toFixed(0));
+				}
+			  });
+		
+			document.getElementById("afterclick").style.display = "block";
+			//create key pair from WIF
+			var netselect = $("#network").val();
+			var NETWORKB = netselect === "test" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+			var NETWORKAPI = netselect === "test" ? "testnet-api" : "api";
+			//var thiswifinput = "cMqQP9fo8p6JXBhcrT7TYQaHfDadeMdHDUZgWjGJN5jZx39FSnQB";
+			var thiswifinput = $("#inputwif").val();
+			var keyPair = b.bitcoin.ECPair.fromWIF(thiswifinput, NETWORKB);
+			var pubKey = keyPair.getPublicKeyBuffer();
+			var pubKeyHash = b.bitcoin.crypto.hash160(pubKey);
+			var scriptPubKey = b.bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
+			var bech32address = b.bitcoin.address.fromOutputScript(scriptPubKey, NETWORKB);
+
+			//query bech32 address for inputs
 				
-				<td><h3>OUTPUT(S)</h3>
-					<table width="100%">
-					<tr>
-						<td width="70%">Address</td>
-						<td width="30%">Output Value</td>
-						
-					</tr>
-					<tr>
-						<td><input type="text" id="outputi" size="40"></td>
-						<td><input type="text" id="amounti"></td>
-					</tr>
-					<tr>
-						<td><p>Change address (optional)</p><input type="text" id="changeout" size="40"></td>
-						<td><p>change amount (optional)</p><input type="text" id="changeamt"></td>
-					</tr>
-					</table>
-				</td>
-			</tr>
-			<tr>
-			</tr>
-			</table>
-			<br>
-			<center><button onclick="return createTx();" class="btn btn-info">Build & Sign Transaction</button></center>
-			<br>
-			<center><textarea id="signedtxoutput" cols="120" rows="12"></textarea></center>
+			var data
+			$.ajax({
+				async: true,
+				type: "GET",
+				url: "https://"+NETWORKAPI+".smartbit.com.au/v1/blockchain/address/"+bech32address+"/unspent",
+				success: function(result) {
+				  console.log(result.unspent.length + " utxos found");
+				  data = result.unspent.map(function(item){
+					return {
+					  "txid": item.txid,
+					  "vout": item.n,
+					  "satoshis": item.value_int
+					}
+				  })
+				  //output response into the inputdata element
+				  $("#inputdata").val(JSON.stringify(data, null, 2))
+				}
+			  });
+		}
+
+		function sweepUTXOs(){
+			var netselect = $("#network").val();
+			var NETWORKB = netselect === "test" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+			var thiswifinput = $("#inputwif").val();
+			var keyPair = b.bitcoin.ECPair.fromWIF(thiswifinput, NETWORKB);
+			var pubKey = keyPair.getPublicKeyBuffer();
+			var pubKeyHash = b.bitcoin.crypto.hash160(pubKey);
+			var scriptPubKey = b.bitcoin.script.witnessPubKeyHash.output.encode(pubKeyHash);
+
+			var inputData = $("#inputdata").val();
+			inputData = JSON.parse(inputData);
+
+			//fetch to address
+			var toAddressBox = $("#outputaddr").val();
+			var toAddress = toAddressBox;
+			//check if address filled out
+			if (toAddress == "") {
+			alert("Please Enter Address to send to!")
+			return
+			}
+
+			//get fee rate from input
+			var satPerByte = $("#satperbyte").val()
+			if (satPerByte == "") {
+			alert("Please enter Satoshi Per Byte Fee Rate!")
+			return
+			}
+			satPerByte = parseFloat(satPerByte)
 			
-        </div>
-    
+			//build transaction from utxo set
+			var txb = new b.bitcoin.TransactionBuilder(NETWORKB)
+			for (var i = 0; i < inputData.length; i++) {
+			txb.addInput(inputData[i].txid,
+						 inputData[i].vout,
+						 0xffffffff,
+						 scriptPubKey)
+			}
+			//calculate tx size and fee
+			var estimatedByteCount = getByteCountSegwitNative(inputData.length, 1)
+			console.log("estimatedByteCount"+estimatedByteCount);
+			var estimatedFeeSatoshis = parseFloat(estimatedByteCount * satPerByte)
+			console.log("estimatedFeeSatoshis"+estimatedFeeSatoshis);
+			var totalSatoshis = inputData.reduce(function(total, item){return total += item.satoshis}, 0)
+			console.log("totalSatoshis"+totalSatoshis);
+			var totalSatoshisMinusFee = totalSatoshis - estimatedFeeSatoshis
+			console.log("totalSatoshisMinusFee"+totalSatoshisMinusFee);
+			
+			//output
+			txb.addOutput(toAddress, totalSatoshisMinusFee);
+			
+			//sign all inputs
+			for (var i = 0; i < inputData.length; i++) {
+			txb.sign(i, keyPair, null, null, inputData[i].satoshis)
+			}
+
+			var tx = txb.build()
+			var tx_txid = tx.getId()
+			var tx_raw = tx.toHex()
+			
+			$("#results").html('Raw Transaction Hash to Broadcast:<br><textarea cols="100" rows="10">' + tx_raw + '</textarea>' );
+		}
+
+
+		function getByteCountSegwitNative(inputCount,outputCount) {
+		  var inputSize = 42 + (68 * inputCount)
+		  var outputSize = 31
+		  return Math.ceil(inputSize + outputSize)
+		}  
+
+
+		$("#getUTXO").on("click",getUTXOs);
+		$("#sweepbtn").on("click",sweepUTXOs);
+		</script>
+		<!-- End Sweep Key -->
     
         <br>
         <br>
