@@ -331,7 +331,7 @@
 			//create key pair from WIF
 			var netselect = $("#network").val();
 			var NETWORKB = netselect === "test" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
-			var NETWORKAPI = netselect === "test" ? "testnet-api" : "api";
+			var NETWORKAPI = netselect === "test" ? "testnet/" : "";
 			//var thiswifinput = "cMqQP9fo8p6JXBhcrT7TYQaHfDadeMdHDUZgWjGJN5jZx39FSnQB";
 			var thiswifinput = $("#inputwif").val();
 			var keyPair = b.bitcoin.ECPair.fromWIF(thiswifinput, NETWORKB);
@@ -346,14 +346,14 @@
 			$.ajax({
 				async: true,
 				type: "GET",
-				url: "https://"+NETWORKAPI+".smartbit.com.au/v1/blockchain/address/"+bech32address+"/unspent",
+				url: "https://api.blockchair.com/bitcoin/"+NETWORKAPI+"dashboards/address/"+bech32address,
 				success: function(result) {
-				  console.log(result.unspent.length + " utxos found");
-				  data = result.unspent.map(function(item){
+				  console.log(result.data[bech32address].utxo.length + " utxos found");
+				  data = result.data[bech32address].utxo.map(function(item){
 					return {
-					  "txid": item.txid,
-					  "vout": item.n,
-					  "satoshis": item.value_int
+					  "txid": item.transaction_hash,
+					  "vout": item.index,
+					  "satoshis": item.value
 					}
 				  })
 				  //output response into the inputdata element
