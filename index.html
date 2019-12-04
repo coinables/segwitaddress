@@ -163,8 +163,6 @@
     
     <!-- jQuery -->
     <script src="js/jquery-3.2.1.min.js"></script>
-    <!-- QRCode Webcam Scanner -->
-    <script src="js/instascan.min.js"></script>
     <!-- load bitcoinjs-lib -->
     <script src="js/bitcoinjs-lib-3.1.1.js"></script>
     <!-- big integer for mouse entropy -->
@@ -489,7 +487,6 @@ function clearBulk(){
 }  
       
 function sweepKey() {
-     var DOUBLE_TX = false
      var NETWORK = currentNetwork();
      var API_DOMAIN = apiDomain();
      var EXPLORER_DOMAIN = explorerDomain();
@@ -565,14 +562,7 @@ function sweepKey() {
       if (toAddress == "") {
         alert("Please Enter Address to send to!")
         return
-      } else {
-        try {
-          var toAddressObj = bitcoin.address.fromBase58Check(toAddress)
-        } catch(e) {
-          alert("To Address was not a valid Bitcoin address!")
-          return
-        }
-      }
+      } 
       
       //get fee rate from input
       var satPerByte = $("#satperbyte").val()
@@ -600,19 +590,9 @@ function sweepKey() {
       var estimatedFeeSatoshis = Math.ceil(estimatedByteCount * satPerByte)
       var totalSatoshis = inputData.reduce(function(total, item){return total += item.satoshis}, 0)
       var totalSatoshisMinusFee = totalSatoshis - estimatedFeeSatoshis
-      if (DOUBLE_TX) {
-        if (NETWORK.scriptHash == toAddressObj.version) {
-          alert("Can't double Transaction to P2SH, please send to P2PKH")
-          return
-        }
-        var sendToScriptPubkey = redeemScript
-      } else if (NETWORK.pubKeyHash == toAddressObj.version) {
-        var sendToScriptPubkey = bitcoin.script.pubKeyHash.output.encode(toAddressObj.hash)
-      } else if (NETWORK.scriptHash == toAddressObj.version) {
-        var sendToScriptPubkey = bitcoin.script.scriptHash.output.encode(toAddressObj.hash)
-      }
+      
       //add output
-      txb.addOutput(sendToScriptPubkey,
+      txb.addOutput(toAddress,
                     totalSatoshisMinusFee)
     
       //sign all inputs
@@ -623,51 +603,7 @@ function sweepKey() {
       var tx = txb.build()
       var tx_txid = tx.getId()
       var tx_raw = tx.toHex()
-      if (DOUBLE_TX) {
-        var secondTxInput = {
-          txid: tx_txid,
-          vout: 0,
-          satoshis: totalSatoshisMinusFee
-        }
-        var txb2 = new bitcoin.TransactionBuilder(NETWORK)
-        var sendAmountMinusFees = secondTxInput.satoshis - Math.ceil(142 * satPerByte)
-        if (secondTxInput.satoshis - Math.ceil(142 * satPerByte) < 0) {
-          alert('Not enough funds to pay for Double TX fees.')
-          return
-        }
-        if (parseInt(sendAmountMinusFees / 2) < 546) {
-          alert('Not enough funds to pay for Double TX fees. Would create dust.')
-          return
-        }
-        txb2.addInput(secondTxInput.txid,
-                      secondTxInput.vout,
-                      0xffffffff,
-                      redeemScript)
-        txb2.tx.ins[0].prevOutType = bitcoin.script.types.P2WPKH
-        txb2.addOutput(sendToScriptPubkey,
-                      parseInt(sendAmountMinusFees / 2))
-        txb2.addOutput(sendToScriptPubkey,
-                      parseInt(sendAmountMinusFees / 2))
-        
-        txb2.sign(0, keyPair, null, null, secondTxInput.satoshis)
-        var tx2 = txb2.build()
-        var tx2_txid = tx2.getId()
-        var tx2_raw = tx2.toHex()
-        console.log()
-        setTimeout(function(){
-          $.ajax({
-            async: true,
-            type: "POST",
-            url: API_DOMAIN + "/v1/blockchain/pushtx",
-            contentType: 'application/json',
-            dataType: "json",
-            data: JSON.stringify({hex: tx2_raw}),
-            success: function(result) {
-              console.log("Transaction #2 sent!");
-            }
-          });
-        },1500)
-      }
+      
       $.ajax({
         async: true,
         type: "POST",
@@ -683,12 +619,8 @@ function sweepKey() {
         "Transaction ID:<br><a href=\"" + EXPLORER_DOMAIN + "/tx/" + tx_txid + "\" target=\"_blank\">" +
         tx_txid + "</a><br>" +
         "Raw Transaction:<br><textarea cols=\"150\" rows=\"10\">" +
-        tx_raw + "</textarea>" +
-        (!DOUBLE_TX ? "" : "<br><br>Transaction #2 ID: (Raw Segwit inputs and outputs)<br><a href=\"" + EXPLORER_DOMAIN + "/tx/" + tx2_txid + "\" target=\"_blank\">" +
-        tx2_txid + "</a><br>" +
-        "Raw Transaction:<br><textarea cols=\"150\" rows=\"10\">" +
-        tx2_raw + "</textarea>")
-      );    
+        tx_raw + "</textarea>")
+         
       
 }
       
@@ -725,51 +657,8 @@ $(document).ready( function() {
   </script>
     
 <script>
-function turnOnWC(){
-    $("#qrcam").css("display","block");
-    var qr = new Instascan.Scanner({
-    video: document.getElementById("qrcam")
-    });
-
-    qr.addListener('scan', function(data){
-        document.getElementById("wifprivatekey").value = data;
-        if(document.getElementById("wifprivatekey").value.length > 20){
-            qr.stop();
-             $("#qrcam").css("display","none");
-            $("#qrnotify").css("display","block");
-        }
-    });    
-
-    Instascan.Camera.getCameras().then(function(cams){
-        qr.start(cams[0]);
-    }).catch(function(err){
-        console.log(err);
-    });    
-}   
- 
-    
-function turnOnWC2(){
-$("#qrcam").css("display","block");
-var qr = new Instascan.Scanner({
-video: document.getElementById("qrcam")
-});
-
-qr.addListener('scan', function(data){
-    document.getElementById("toaddress").value = data;
-    if(document.getElementById("toaddress").value.length > 20){
-        qr.stop();
-         $("#qrcam").css("display","none");
-        $("#qrnotify2").css("display","block");
-    }
-});  
-      
-
-Instascan.Camera.getCameras().then(function(cams){
-    qr.start(cams[0]);
-}).catch(function(err){
-    console.log(err);
-});    
-}   
+//webcam function removed 
+//TODO find updated library to scan QR codes
 
 </script>    
     
