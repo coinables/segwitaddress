@@ -181,7 +181,8 @@
 		color: #888;
 	}
     </style>
-    
+    <!-- QR code webcam scanner -->
+	<script src="../js/instascan.min.js"></script>
     <!-- jQuery -->
     <script src="../js/jquery-3.2.1.min.js"></script>
     <!-- buidl.js (bitcoinjs-lib wrapper) -->
@@ -296,7 +297,8 @@
 		</select>
 		<br><br>
 
-		<b>Private Key: </b><input type="text" id="inputwif" class="wideinput">
+		<b>Private Key: </b><input type="text" id="inputwif" class="wideinput"><button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
+            <video id="qrcam"></video>
 		<br><br>
 		<button id="getUTXO" class="btn btn-secondary">Find UTXOs</button>
 		<br><br>
@@ -306,7 +308,7 @@
 		<textarea id="inputdata" cols="100" rows="7"></textarea>
 		<br><br>
 
-		<b>Sweep to Address: </b><input type="text" id="outputaddr" class="wideinput">
+		<b>Sweep to Address: </b><input type="text" id="outputaddr" class="wideinput"> <button class="btn btn-default" onClick="return turnOnWC2();">SCAN WITH WEBCAM</button><span id="qrnotify2" class="label label-success">QR CODE SCANNED</span>
 		<br><br>
 
 		<b>Fee (Sats per byte): </b><input type="number" id="satperbyte">
@@ -652,7 +654,57 @@ $(document).ready( function() {
      
   
   </script>
+
+<script>
+//webcam functions
+function turnOnWC(){
+    $("#qrcam").css("display","block");
+    var qr = new Instascan.Scanner({
+    video: document.getElementById("qrcam")
+    });
+
+    qr.addListener('scan', function(data){
+        document.getElementById("inputwif").value = data;
+        if(document.getElementById("inputwif").value.length > 20){
+            qr.stop();
+             $("#qrcam").css("display","none");
+            $("#qrnotify").css("display","block");
+        }
+    });    
+
+    Instascan.Camera.getCameras().then(function(cams){
+        qr.start(cams[0]);
+    }).catch(function(err){
+        console.log(err);
+    });    
+}   
+ 
     
+function turnOnWC2(){
+	$("#qrcam").css("display","block");
+	var qr = new Instascan.Scanner({
+	video: document.getElementById("qrcam")
+	});
+
+	qr.addListener('scan', function(data){
+		document.getElementById("outputaddr").value = data;
+		if(document.getElementById("outputaddr").value.length > 20){
+			qr.stop();
+			$("#qrcam").css("display","none");
+			$("#qrnotify2").css("display","block");
+		}
+	});  
+		  
+
+	Instascan.Camera.getCameras().then(function(cams){
+		qr.start(cams[0]);
+	}).catch(function(err){
+		console.log(err);
+	});    
+}   
+
+
+</script>      
  
     
 <script>

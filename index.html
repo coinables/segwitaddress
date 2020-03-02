@@ -167,6 +167,8 @@
     <script src="js/bitcoinjs-lib-3.1.1.js"></script>
     <!-- big integer for mouse entropy -->
     <script src="js/metropy.js"></script>
+	<!-- QR code webcam scanner -->
+	<script src="js/instascan.min.js"></script>
 	<!-- native segwit -->
     <script src="js/bech32.js"></script>
     <!-- QRCode lib -->
@@ -187,7 +189,7 @@
             All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and running the index.html file, except for the sweep function which requires internet access to check the UTXOs and broadcast to the network.
             <br>
             <br>
-                You can enable testnet mode by adding  <span class="label label-reference">?testnet=true</span>  to the end of the url.
+            You can enable testnet mode by adding  <span class="label label-reference">?testnet=true</span>  to the end of the url.
             </div> 
         
         <!-- Create Segwit Address -->
@@ -227,12 +229,13 @@
         <!-- Sweep Key -->
         <h2>Sweep SegWit Private Key</h2>
         <div id="sweepcont">
-            <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey">
-            
-            <br>
+            <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey"><button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
+            <video id="qrcam"></video>
+			<br>
     
             <input type="text" class="form-control input-lg" placeholder="Destination Address" id="toaddress">
-            
+            <button class="btn btn-default" onClick="return turnOnWC2();">SCAN WITH WEBCAM</button><span id="qrnotify2" class="label label-success">QR CODE SCANNED</span>
+    
             <br>
             
             <textarea id="inputdata" cols="100" rows="7"></textarea>
@@ -293,7 +296,9 @@
         <br>
 		Looking for bech32? <a href="https://segwitaddress.org/bech32">https://segwitaddress.org/bech32</a>	
         <br>
-	<br>
+		Need Help? <a href="https://www.youtube.com/watch?v=I1uefzJJ6nM">How to Use Paper Wallets</a>
+		<br>
+		<br>
 		Donate: 3PmAECWsic822v8bgHmJecJ9DzLfXkTKrP
 	<br>
 	<br>
@@ -657,8 +662,53 @@ $(document).ready( function() {
   </script>
     
 <script>
-//webcam function removed 
-//TODO find updated library to scan QR codes
+//webcam functions
+function turnOnWC(){
+    $("#qrcam").css("display","block");
+    var qr = new Instascan.Scanner({
+    video: document.getElementById("qrcam")
+    });
+
+    qr.addListener('scan', function(data){
+        document.getElementById("wifprivatekey").value = data;
+        if(document.getElementById("wifprivatekey").value.length > 20){
+            qr.stop();
+             $("#qrcam").css("display","none");
+            $("#qrnotify").css("display","block");
+        }
+    });    
+
+    Instascan.Camera.getCameras().then(function(cams){
+        qr.start(cams[0]);
+    }).catch(function(err){
+        console.log(err);
+    });    
+}   
+ 
+    
+function turnOnWC2(){
+	$("#qrcam").css("display","block");
+	var qr = new Instascan.Scanner({
+	video: document.getElementById("qrcam")
+	});
+
+	qr.addListener('scan', function(data){
+		document.getElementById("toaddress").value = data;
+		if(document.getElementById("toaddress").value.length > 20){
+			qr.stop();
+			 $("#qrcam").css("display","none");
+			$("#qrnotify2").css("display","block");
+		}
+	});  
+		  
+
+	Instascan.Camera.getCameras().then(function(cams){
+		qr.start(cams[0]);
+	}).catch(function(err){
+		console.log(err);
+	});    
+}   
+
 
 </script>    
     
