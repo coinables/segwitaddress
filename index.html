@@ -167,10 +167,12 @@
     <script src="js/bitcoinjs-lib-3.1.1.js"></script>
     <!-- big integer for mouse entropy -->
     <script src="js/metropy.js"></script>
-	<!-- QR code webcam scanner -->
-	<script src="js/instascan.min.js"></script>
-	<!-- native segwit -->
+    <!-- QR code webcam scanner -->
+    <script src="js/instascan.min.js"></script>
+    <!-- native segwit (console only)-->
     <script src="js/bech32.js"></script>
+    <!-- buidljs -->
+    <script src="bech32/buidl.js"></script>
     <!-- QRCode lib -->
     <script type="text/javascript" src="js/qrcode.js"></script>
     <!-- Network specific methods -->
@@ -414,24 +416,31 @@ function brainWalletCreate(){
     //fetch user input
     var brainInput = $("#brainWalletInput").val();
     //create a key pair based on the sha256 hash of the users input
-    me.addMouseEntropy(brainInput, currentNetwork(), function(maddr, mpk){
-        document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + maddr + "</div></div>";
+	var checkNet = currentNetwork();
+	isTestNet = null;
+	if(checkNet == bitcoin.networks.testnet){
+		isTestNet = "testnet";
+		console.log("testnet");
+	}
+    var brainPair = buidl.createFrom(brainInput, isTestNet);
+	
+	document.getElementById("swaddr").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Segwit Address</h2></div><div class='panel-body'>" + brainPair.p2shp2wpkh + "</div></div>";
 
-        //blank out any existing qr code
-        document.getElementById("qrcode").innerHTML = "";
-        //create new qrcode with segwit address
-        new QRCode(document.getElementById("qrcode"), maddr);
+	//blank out any existing qr code
+	document.getElementById("qrcode").innerHTML = "";
+	//create new qrcode with segwit address
+	new QRCode(document.getElementById("qrcode"), brainPair.p2shp2wpkh);
 
-        document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + mpk + "</div></div>";
+	document.getElementById("swpk").innerHTML = "<br><div class='panel panel-danger'><div class='panel-headingd'><h3 class='panel-title'>Segwit Private Key</h2></div><div class='panel-body'>" + brainPair.pk + "</div></div>";
 
-        //blank out any exisitng private key qr code
-        document.getElementById("qrcodepk").innerHTML = "";
-        //create new qrcode with private key
-        new QRCode(document.getElementById("qrcodepk"), mpk);
+	//blank out any exisitng private key qr code
+	document.getElementById("qrcodepk").innerHTML = "";
+	//create new qrcode with private key
+	new QRCode(document.getElementById("qrcodepk"), brainPair.pk);
 
-        //zero out brain wallet input
-        brainInput = "";
-    });
+	//zero out brain wallet input
+	brainInput = "";
+    
 }  
       
 function details(){
