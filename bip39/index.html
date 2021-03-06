@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html>
+    
+<head>
+    <title>SegWit HD Paper Wallet</title>
+    <meta name="description" content="Create HD wallet in your browser that can be ran offline.">
+    <meta name="keywords" content="Bitcoin, SegWit Paper, SegWit Address, P2WPKH generator, bech32, native segwit, P2WPKH wallet, javascript, pay to witness">
+
+    <style>
+    body, html {
+        padding-left: 12px;
+        font-family: "Verdana", "sans-serif";
+    }
+    a:link {
+    text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+    #share{
+        color: green;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #keep{
+        color: red;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #sweepcont{
+        width: 60%;
+    }
+    #wit{
+        background-color: black;
+        color: #ffeeff;
+    }
+    .label-default{
+        padding: 3px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        text-decoration: none;
+        color: #222;
+    }
+    .label-primary{
+        padding: 3px;
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-success{
+        padding: 3px;
+        border: 1px solid #52BE80;
+        background-color: #52BE80;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-reference{
+        padding: 3px;
+        border: 1px solid #333;
+        background-color: grey;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    #qrcam{
+        display: none;
+    }
+    #entropyCanvas{
+        display: none;
+    }
+    #entropyRef{
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        color: #fff;
+        padding: 5px;
+    }
+    #sweepkey{
+        background-color: #52BE80;
+        color: #fff;
+    }
+    #btnBulk{
+        background-color: #F1C40F;
+        color: #fff;
+    }
+    #clearBulk{
+        background-color: #EC7063;
+        color: #fff;
+    }
+    #qrnotify{
+        display: none;
+    }
+    #qrnotify2{
+        display: none;
+    }
+    .hr {
+        height: 6px;
+        border: 0;
+        box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    .well{
+        padding: 16px;
+        border: 2px solid #aaa;
+        border-radius: 3px;
+        background-color: #ddd;
+        color: #000;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    input{
+        width: 60%;
+        border-radius: 4px; 
+        background-color: #eee;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+    }
+    .btn{
+        border-radius: 4px; 
+        background-color: #fff;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    #progbar{
+        background-color: #5DADE2;
+        height: 20px;
+    }
+    .panel-primary{
+        border: 2px solid #5DADE2;
+        border-radius: 3px;
+    }
+    .panel-heading{
+        background-color: #5DADE2;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-danger{
+        border: 2px solid #EC7063;
+        border-radius: 3px;
+    }
+    .panel-headingd{
+        background-color: #EC7063;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-body{
+        padding: 3px;
+    }
+    #detailsAddr{
+        text-align: right;
+    }
+    #detailsAddrQr{
+        display: block;
+        width: 140px;
+        float: right;
+    }
+	#wordsout{
+		display: none;
+	}
+	#derivpath{
+		display: none;
+	}
+	.addrout{
+		width: 310px;
+        font-size: 14px;
+	}
+	.pkout{
+		width: 480px;
+        font-size: 14px;
+	}
+	#qrfloat{
+		display: none;
+		position: fixed;
+		right: 10px;
+		top: 10px;
+	}
+    </style>
+<script src="buidl.js"></script>
+<script src="jquery-3.2.1.min.js"></script>
+<script src="qrcode.js"></script>
+</head>
+    
+<body>
+    
+	<h1>SegWit HD Wallet</h1>
+	
+	<div class="well">
+		<span style="font-weight: bold; font-size: 22px;">How Does It Work?</span>
+		
+		<p>This page lets you safely generate a mnemonic seed phrase offline with your mouse movement as entropy.</p> 
+				
+		<p>This page is <span class="label label-primary">OPEN SOURCE</span> and should be ran offline by <a href="https://github.com/coinables/segwitaddress/releases">saving this site</a> and launching the index.html file inside of the BIP39 directory.</p>
+	</div>
+	
+    <br>
+	<button id="entropyRef" onclick="return btnCreate();" class="btn btn-primary">Generate New Mnenomic</button>
+    <select id="wordLength"><option value="twty">24 Words</option><option value="twlv">12 Words</option></select>
+	<br>
+	<!-- mouse entropy canvas -->
+	<canvas id="entropyCanvas" width="800" height="200" style="border: 1px solid black;"></canvas>
+	<div class="progress progress-striped">
+		<div class="progress-bar progress-bar-info" style="width: 0%" id="progbar"></div>
+	</div>
+	<div id="canvasCounter"></div>
+	<br><br>
+	<div id="wordsout" class="well" style="font-size: 23px;"></div>
+	<br><br>
+	<div id="derivpath" width="100%"></div>
+	<div id="addrs" style="display: none;"><h2 style="cursor: pointer;" onclick="return showAdv();">Advanced &#9660;</h2><div id="keylist" style="display: none;"></div></div>
+	<div id="qrfloat"></div>
+    <br>
+    <br>
+    <!-- footer -->
+    <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
+    <a href="https://github.com/coinables/segwitaddress/bip39"><span class="label-primary">OPEN SOURCE</span></a>
+    <a href="https://github.com/coinables/buidljs"><span class="label-success">BUIDLJS</span></a>
+<script>
+function btnCreate(){
+    $("#entropyCanvas").css("display","block");
+    $("#entropywell").css("display","block");
+
+    //get mouse position to use for randomness
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+    }
+
+    var entropy = "";
+    var canvas = document.getElementById('entropyCanvas');
+    var c2d = canvas.getContext("2d");
+    c2d.font = "30px Arial";
+    c2d.fillText("Move Your Mouse Around Here For Randomness",10,50);
+
+    canvas.addEventListener('mousemove', function(evt) {
+		//append until a length of 8192    
+		if(entropy.length < 8192){
+			var mousePos = getMousePos(canvas, evt);   
+			//append mouse position to entropy source
+			entropy += mousePos.x + mousePos.y;
+
+			//update progress bar
+			entropyCalcBar = entropy.length / 8192;
+			entropyPercent = entropyCalcBar * 100;
+			entropyPercentFixed = entropyPercent.toFixed(0);
+			entropyBar = "width: "+entropyPercentFixed+"%";
+			document.getElementsByTagName('div')[2].setAttribute("style", entropyBar);
+			document.getElementById("canvasCounter").innerHTML = entropy.length+"/8192";   
+		} else {
+			//length requirement met, hide entropy canvas
+			$("#entropyCanvas").css("display","none");
+			$("#entropywell").css("display","none");
+			$("#canvasCounter").html("");
+			
+			//Add cryptographically strong randomness to key generation
+			var bufferarray = new Uint32Array(64);
+			var csprng = crypto.getRandomValues(bufferarray);
+			var csprngStr = csprng.join("");
+			let mixedEntropy = entropy + csprngStr;
+			//create a mnemonic based on the 8192 random integers through sha256 hash
+			let shaEntropy = buidl.sha256(mixedEntropy, 1);
+            let lengthselector = document.getElementById("wordLength").value;
+            if(lengthselector!=="twty"){
+                shaEntropy = shaEntropy.substring(32);
+            }
+			
+			let newMnemonic = buidl.entropy2Mnemonic(shaEntropy);
+			
+			//dispaly mnemonic
+			document.getElementById("wordsout").style.display = "block";
+			document.getElementById("wordsout").innerHTML = "<center><b>Mnemonic Seed Phrase</b><br><br>"+newMnemonic.words+"</center>";
+			
+			makeseedhex = buidl.mnemonic2SeedHex(newMnemonic.words);
+			var thisxpub = buidl.seedToXpub(makeseedhex.seedHex, 49, 0);
+            var thisypub = buidl.convertXpub(thisxpub.xpub,"ypub");
+			var thisxprv = buidl.seedToXprv(makeseedhex.seedHex, 49, 0);
+			
+			//show deriv and xpub
+			document.getElementById("derivpath").style.display = "block";
+			document.getElementById("derivpath").innerHTML = '<table width="100%"><tr><td>BIP: </td><td><input value="49" disabled readonly></td></tr><tr><td>Coin: </td><td><input value="0" disabled readonly></td></tr><tr><td>Account: </td><td><input value="0" disabled readonly></td></tr><tr><td>Change: </td><td><input value="0" disabled readonly></td></tr></table><br><br><table width="100%"><tr><td align="left"><div id="qrxpub"></div><br>XPUB: <input type="text" style="font-size: 10px" value="'+thisypub+'" width="99%" disabled readonly></td></tr><tr><td align="right"><div id="qrxprv"></div><br>XPRV: <input type="text"  style="font-size: 10px" value="'+thisxprv.xprv+'" width="99%" disabled readonly></td></tr></table><p>Create a watch-only wallet with Electrum by scanning the XPUB.<li>File-> New/Restore</li><li>Choose Standard Wallet</li><li>Use a Master Key</li><li>Scan you XPUB QR with webcam</li><li>Wallet is now watch only (view/receive only, cannot spend)</li></p>';
+			
+			document.getElementById("qrxpub").innerHTML = "";
+			document.getElementById("qrxprv").innerHTML = "";
+			new QRCode(document.getElementById("qrxpub"),thisxpub.xpub);
+			new QRCode(document.getElementById("qrxprv"),thisxprv.xprv);
+			
+			document.getElementById("addrs").style.display = "block";
+			
+			addrarray = [];
+			xprvarray = [];
+			
+			for(i=0;i<50;i++){
+				nextaddr = buidl.fromXpub(thisxpub.xpub,0,i,3);
+				addrarray.push(nextaddr.addr);
+				
+				nextkey = buidl.xprvToWIF(thisxprv.xprv,0,i);
+				xprvarray.push(nextkey.wif);
+			}
+						
+						
+			//zero out entropy sources
+			shaEntropy = "";
+			make12words = "";
+			newMnemonic = "";
+			entropy = "";
+			mixedEntropy = "";
+			csprngStr = "";
+			
+		}               
+
+    }, false);
+
+}
+
+function showAdv(){
+	document.getElementById("keylist").style.display = "block";
+	document.getElementById("keylist").innerHTML = '';
+	document.getElementById("keylist").innerHTML += 'Hex Seed: <input type="text" style="font-size: 10px" value="'+makeseedhex.seedHex+'" disabled readonly><br><br>';
+	
+	var top = document.getElementById("addrs").offsetTop;
+    	
+	for(ii=0;ii<50;ii++){
+		document.getElementById("keylist").innerHTML += 'm/49&#39;/0&#39;/0&#39;/0&#39;/'+ii+' <input type="text" value="'+addrarray[ii]+'" class="addrout" onmouseover="return showQR(this);" onmouseleave="return hideQR();" readonly> <input type="text" value="'+xprvarray[ii]+'" class="pkout" onmouseover="return showQR(this);" onmouseleave="return hideQR();" readonly><br>';
+	}
+	
+	window.scrollTo(0, top);  
+}
+
+function showQR(elemQR){
+	let elementValue = elemQR.value;
+	document.getElementById("qrfloat").style.display = "block";
+	document.getElementById("qrfloat").innerHTML = "";
+	new QRCode(document.getElementById("qrfloat"),elementValue);
+	
+}
+
+function hideQR(){
+	document.getElementById("qrfloat").style.display = "none";
+}
+</script>	
+	
+</body>
+</html>
