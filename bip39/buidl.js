@@ -393,7 +393,8 @@ function fromXpub(xpub, acctNumber, keyindex, type){
 }
 
 function xprvToWIF(xprv, change, index){
-	let wif = bitcoin.HDNode.fromBase58(xprv).derivePath(change+"/"+index).keyPair.toWIF();
+    var inputExt = convertXpub(xprv,"xprv");
+	let wif = bitcoin.HDNode.fromBase58(inputExt).derivePath(change+"/"+index).keyPair.toWIF();
 	return{
 		wif
 	}
@@ -460,6 +461,9 @@ function convertXpub(xpub,target){
     ['Upub', '024289ef'],
     ['vpub', '045f1cf6'],
     ['Vpub', '02575483'],
+      ['xprv', '0488ade4'],
+      ['yprv', '049d7878'],
+      ['zprv', '04b2430c']
   ]
   );
     

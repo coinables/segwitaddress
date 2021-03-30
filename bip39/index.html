@@ -199,7 +199,7 @@
 	
     <br>
 	<button id="entropyRef" onclick="return btnCreate();" class="btn btn-primary">Generate New Mnenomic</button>
-    <select id="wordLength"><option value="twty">24 Words</option><option value="twlv">12 Words</option></select>
+    <select id="wordLength" class="btn btn-info"><option value="twty">24 Words</option><option value="twlv">12 Words</option></select>
 	<br>
 	<!-- mouse entropy canvas -->
 	<canvas id="entropyCanvas" width="800" height="200" style="border: 1px solid black;"></canvas>
@@ -217,7 +217,7 @@
     <br>
     <!-- footer -->
     <a href="https://bitcoincore.org/en/segwit_adoption/"><span class="label-default"><span id="wit">SEG</span>WIT</span></a>
-    <a href="https://github.com/coinables/segwitaddress/bip39"><span class="label-primary">OPEN SOURCE</span></a>
+    <a href="https://github.com/coinables/segwitaddress/tree/master/bip39"><span class="label-primary">OPEN SOURCE</span></a>
     <a href="https://github.com/coinables/buidljs"><span class="label-success">BUIDLJS</span></a>
 <script>
 function btnCreate(){
@@ -281,15 +281,16 @@ function btnCreate(){
 			var thisxpub = buidl.seedToXpub(makeseedhex.seedHex, 49, 0);
             var thisypub = buidl.convertXpub(thisxpub.xpub,"ypub");
 			var thisxprv = buidl.seedToXprv(makeseedhex.seedHex, 49, 0);
+            var thisyprv = buidl.convertXpub(thisxprv.xprv,"yprv");
 			
 			//show deriv and xpub
 			document.getElementById("derivpath").style.display = "block";
-			document.getElementById("derivpath").innerHTML = '<table width="100%"><tr><td>BIP: </td><td><input value="49" disabled readonly></td></tr><tr><td>Coin: </td><td><input value="0" disabled readonly></td></tr><tr><td>Account: </td><td><input value="0" disabled readonly></td></tr><tr><td>Change: </td><td><input value="0" disabled readonly></td></tr></table><br><br><table width="100%"><tr><td align="left"><div id="qrxpub"></div><br>XPUB: <input type="text" style="font-size: 10px" value="'+thisypub+'" width="99%" disabled readonly></td></tr><tr><td align="right"><div id="qrxprv"></div><br>XPRV: <input type="text"  style="font-size: 10px" value="'+thisxprv.xprv+'" width="99%" disabled readonly></td></tr></table><p>Create a watch-only wallet with Electrum by scanning the XPUB.<li>File-> New/Restore</li><li>Choose Standard Wallet</li><li>Use a Master Key</li><li>Scan you XPUB QR with webcam</li><li>Wallet is now watch only (view/receive only, cannot spend)</li></p>';
+			document.getElementById("derivpath").innerHTML = '<table width="100%"><tr><td>BIP: </td><td><input value="49" disabled readonly></td></tr><tr><td>Coin: </td><td><input value="0" disabled readonly></td></tr><tr><td>Account: </td><td><input value="0" disabled readonly></td></tr><tr><td>Change: </td><td><input value="0" disabled readonly></td></tr></table><br><br><table width="100%"><tr><td align="left"><div id="qrxpub"></div><br>XPUB: <input type="text" style="font-size: 10px" value="'+thisypub+'" width="99%" disabled readonly></td></tr><tr><td align="right"><div id="qrxprv"></div><br>XPRV: <input type="text"  style="font-size: 10px" value="'+thisyprv+'" width="99%" disabled readonly></td></tr></table><p>Create a watch-only wallet with Electrum by scanning the XPUB.<li>File-> New/Restore</li><li>Choose Standard Wallet</li><li>Use a Master Key</li><li>Scan you XPUB QR with webcam</li><li>Wallet is now watch only (view/receive only, cannot spend)</li></p>';
 			
 			document.getElementById("qrxpub").innerHTML = "";
 			document.getElementById("qrxprv").innerHTML = "";
-			new QRCode(document.getElementById("qrxpub"),thisxpub.xpub);
-			new QRCode(document.getElementById("qrxprv"),thisxprv.xprv);
+			new QRCode(document.getElementById("qrxpub"),thisypub);
+			new QRCode(document.getElementById("qrxprv"),thisyprv);
 			
 			document.getElementById("addrs").style.display = "block";
 			
