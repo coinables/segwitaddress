@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.input { color: #fff;  height: 50px; background-color: #336699; }
+.green { background-color: #00cc00; }
+#amtsats{
+	background-color: #ccc;
+}
+.wideinput{
+	width: 500px;
+}
+body, html {
+	padding: 12px;
+	font-family: "Verdana", "sans-serif";
+}
+a:link {
+text-decoration: none;
+}
+
+a:visited {
+	text-decoration: none;
+}
+#share{
+	color: green;
+	font-size: 28px;
+	font-weight: bold;
+}
+#keep{
+	color: red;
+	font-size: 28px;
+	font-weight: bold;
+}
+#sweepcont{
+	width: 60%;
+}
+#wit{
+	background-color: black;
+	color: #ffeeff;
+}
+.label-default{
+	padding: 3px;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+	text-decoration: none;
+	color: #222;
+}
+.label-primary{
+	padding: 3px;
+	border: 1px solid #0088ff;
+	background-color: #0088ff;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+.label-success{
+	padding: 3px;
+	border: 1px solid #52BE80;
+	background-color: #52BE80;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+.label-reference{
+	padding: 3px;
+	border: 1px solid #333;
+	background-color: grey;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+#qrcam{
+	display: none;
+}
+#qrnotify{
+        display: none;
+}
+ #qrnotify2{
+	display: none;
+}
+.hr {
+	height: 6px;
+	border: 0;
+	box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+.well{
+	padding: 16px;
+	border: 2px solid #aaa;
+	border-radius: 3px;
+	background-color: #ddd;
+	color: #000;
+	box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+input, select, option{
+	width: 60%;
+	border-radius: 4px; 
+	background-color: #eee;
+	padding: 7px;
+	font-size: 21px;
+	border: 1px solid #999;
+}
+.btn{
+	border-radius: 4px; 
+	background-color: #fff;
+	padding: 7px;
+	font-size: 21px;
+	border: 1px solid #999;
+	box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+#progbar{
+	background-color: #5DADE2;
+	height: 20px;
+}
+.panel-primary{
+	border: 2px solid #5DADE2;
+	border-radius: 3px;
+}
+.panel-heading{
+	background-color: #5DADE2;
+	color: #fff;
+	padding: 5px;
+}
+.panel-danger{
+	border: 2px solid #EC7063;
+	border-radius: 3px;
+}
+.panel-headingd{
+	background-color: #EC7063;
+	color: #fff;
+	padding: 5px;
+}
+.panel-body{
+	padding: 3px;
+}
+.short{
+	width: 120px;
+}
+.smalltxt{
+	font-size: 10px;
+}
+</style>
+<script src="buidl.js"></script>
+<script src="jquery.js"></script>
+<!-- QRCode Webcam Scanner -->
+<script type="text/javascript" src="instascan.min.js"></script>
+</head>
+<body>
+<h1>Generate Redeem Script</h1>
+        <!-- introduction -->
+        <br>   
+            <div class="well">
+				<p>The redeem script is needed to build and sign a multisig transaction. You can save it to a USB stick when you generate your paper multisig wallet (easiest), or type it in by hand(very difficult), or regenerate it using the QR code scanners below(safest). </p>
+				<p>Generate a redeem script by providing all public keys in the same order used to create the multisig address and indicating the required number of signatures to spend. </p> 
+				<p>Public keys can be scanned with the QR codes generated with the original paper multisig wallet. Make sure to scan them in the same order as labeled on the paper wallet.</p>				
+            </div> 
+<br>
+<br>
+<div id="mainContainer">
+	<b>Select Network:</b> <select id="networkselect" class="short"><option value="testnet">Testnet</option><option value="mainnet">Mainnet</option></select>
+	<br>
+	<br>
+	<b>Number of Signatures Required: </b><input type="number" class="short" id="sigsRequired">
+	<br>
+	<video id="qrcam"></video>
+	<br>
+	<div id="pubkeyContainer">
+	<p id="row1">Pub Key #1: <input type="text" id="pubkey1" class="keyinput"><button class="qrscan btn">Scan QR</button></p>
+	</div>
+	<br>
+	<button id="addBtn" class="btn">Add Pub Key</button><button id="removeBtn" class="btn">Remove Pub Key</button>
+	<br>
+	<br>
+	<button class="btn" style="background-color: #52BE80; color: #fff;" id="generateBtn">GENERATE REDEEM SCRIPT</button>
+	<br>
+	<br>
+	<div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Redeem Script</h3></div><div class='panel-body' style='overflow-wrap: break-word;' id="redeemOut"></div></div>
+</div>
+<script>
+
+$(document).ready(function(){
+	reloadScanBtns();
+});
+
+keycounter = 2;
+
+var addBtn = document.getElementById("addBtn");
+var removeBtn = document.getElementById("removeBtn");
+var generateBtn = document.getElementById("generateBtn");
+
+addBtn.onclick = function(){
+	
+	$("#pubkeyContainer").append('<p id="row'+keycounter+'">Pub Key #'+keycounter+': <input type="text" id="pubkey'+keycounter+'" class="keyinput"><button class="qrscan btn">Scan QR</button>');
+	keycounter++;
+	reloadScanBtns()
+}
+
+removeBtn.onclick = function(){
+	var pubkeytoremove = keycounter - 1;
+	var elementid = document.getElementById("row"+pubkeytoremove);
+	elementid.remove();
+	
+	keycounter--;
+	reloadScanBtns()
+}
+
+generateBtn.onclick = function(){
+	//get network, sigs required and pubkeys
+	var netselect = $("#networkselect").val();
+	var NETWORK = netselect === "testnet" ? "testnet" : null;
+	
+	var sigs = $("#sigsRequired").val();
+	sigs = parseInt(sigs);
+	
+	//count number of pubkeys
+	getpubkeyclass = document.getElementsByClassName("keyinput");
+	pubkeyarray = [];
+	for(var i=0; i< getpubkeyclass.length; i++){
+		pubkeyarray.push(getpubkeyclass[i].value)
+	}
+	//console.log(pubkeyarray);
+	var regenObj = buidl.multisigRedeem(sigs, pubkeyarray, NETWORK);
+	$("#redeemOut").html(regenObj.redeemScript)
+}
+
+function reloadScanBtns(){
+	scanBtns = document.getElementsByClassName("qrscan");
+
+	for(var i = 0; i < scanBtns.length; i++){
+		scanBtns[i].onclick = function(){
+			pubkeyin = this.previousSibling;
+			//webcam
+			$("#qrcam").css("display","block");
+			var qr = new Instascan.Scanner({
+			video: document.getElementById("qrcam")
+			});
+
+			qr.addListener('scan', function(data){
+				
+				pubkeyin.value = data;
+				if(pubkeyin.value.length > 20){
+					qr.stop();
+					$("#qrcam").css("display","none");
+					
+				}
+			});    
+
+			Instascan.Camera.getCameras().then(function(cams){
+				qr.start(cams[0]);
+			}).catch(function(err){
+				console.log(err);
+			}); 
+		}
+	}
+
+}
+
+
+
+
+</script>
+</body>
+</html>

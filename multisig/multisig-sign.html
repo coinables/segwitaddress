@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Bitcoinjs-lib -->
+<script type="text/javascript" src="bitcoin.js"></script>
+<!-- buffer for redeemscript -->
+<script type="text/javascript" src="buffer.js"></script>
+<!-- QRCode Webcam Scanner -->
+<script type="text/javascript" src="instascan.min.js"></script>
+<!-- jquery -->
+<script type="text/javascript" src="jquery.js"></script>
+<style>
+body, html {
+	padding: 12px;
+	font-family: "Verdana", "sans-serif";
+}
+a:link {
+text-decoration: none;
+}
+
+a:visited {
+	text-decoration: none;
+}
+#share{
+	color: green;
+	font-size: 28px;
+	font-weight: bold;
+}
+#keep{
+	color: red;
+	font-size: 28px;
+	font-weight: bold;
+}
+#sweepcont{
+	width: 60%;
+}
+#wit{
+	background-color: black;
+	color: #ffeeff;
+}
+.label-default{
+	padding: 3px;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+	text-decoration: none;
+	color: #222;
+}
+.label-primary{
+	padding: 3px;
+	border: 1px solid #0088ff;
+	background-color: #0088ff;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+.label-success{
+	padding: 3px;
+	border: 1px solid #52BE80;
+	background-color: #52BE80;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+.label-reference{
+	padding: 3px;
+	border: 1px solid #333;
+	background-color: grey;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+#qrcam{
+	display: none;
+}
+#qrnotify{
+        display: none;
+}
+ #qrnotify2{
+	display: none;
+}
+.hr {
+	height: 6px;
+	border: 0;
+	box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+.well{
+	padding: 16px;
+	border: 2px solid #aaa;
+	border-radius: 3px;
+	background-color: #ddd;
+	color: #000;
+	box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+input, select, option{
+	width: 60%;
+	border-radius: 4px; 
+	background-color: #eee;
+	padding: 7px;
+	font-size: 21px;
+	border: 1px solid #999;
+}
+.btn{
+	border-radius: 4px; 
+	background-color: #fff;
+	padding: 7px;
+	font-size: 21px;
+	border: 1px solid #999;
+	box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+#progbar{
+	background-color: #5DADE2;
+	height: 20px;
+}
+.panel-primary{
+	border: 2px solid #5DADE2;
+	border-radius: 3px;
+}
+.panel-heading{
+	background-color: #5DADE2;
+	color: #fff;
+	padding: 5px;
+}
+.panel-danger{
+	border: 2px solid #EC7063;
+	border-radius: 3px;
+}
+.panel-headingd{
+	background-color: #EC7063;
+	color: #fff;
+	padding: 5px;
+}
+.panel-body{
+	padding: 3px;
+}
+</style>
+</head>
+<body>
+<h1 id="headerTxt">Sign a MultiSig Transaction</h1>
+        <!-- introduction -->
+        <br>   
+            <div class="well">
+				This page will allow you to sign an unsigned or partially signed multisig transaction and is intended to run offline. 
+				<br><br>
+				If you are the last signor use the <b>Last Signature</b> button, otherwise use <b>Sign Incomplete</b>. For example, if you have a 3 of 4 multisig the first two signors would click Sign Incomplete, and the third signor would click Last Signature. 
+				<br><br>
+				After the Last Signature, copy the resulting transaction hex and broadcast it. You are responsible for broadcasting your transaction with a node, wallet, or 3rd party service (<a href="https://live.blockcypher.com/btc-testnet/pushtx/">Blockcypher</a>, Smartbit <a href="https://testnet.smartbit.com.au/txs/pushtx">Testnet</a> | <a href="https://www.smartbit.com.au/txs/pushtx">Mainnet</a>, Blockstream <a href="https://blockstream.info/testnet/tx/push">Testnet</a> | <a href="https://blockstream.info/tx/push">Mainnet</a>)
+            </div> 
+<br>
+<br>
+<b>Select Network:</b> <select id="networkselect"><option value="testnet">Testnet</option><option value="mainnet">Mainnet</option></select>
+<br>
+<b>Redeem Script:</b> <a href="redeem-script.html">(help?)</a> <input type="text" id="redeem"><br>
+<b>WIF Private Key:</b> <input type="text" id="wifpk"><button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
+<video id="qrcam"></video><br>
+<textarea id="hexin" cols="100" rows="10">Paste In Unsigned Transaction Hex</textarea><br>
+<button id="signInc" onclick="return signIncomplete();" class="btn">Sign Incomplete</button> <button id="signLast" onclick="return signTx();" class="btn">Last Signature</button>
+<br><br>
+<textarea id="hexout" cols="100" rows="10" readonly></textarea><br>
+<script>
+
+/*
+function buildTx(){
+	var netselect = document.getElementById("networkselect").value;
+	var NETWORK = netselect === "testnet" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+	const tx = new b.bitcoin.TransactionBuilder(NETWORK);
+	const prevOutScript = b.bitcoin.script.scriptHash.output.encode(b.bitcoin.crypto.hash160(buffer.bufferFrom("522102f0394cd877723cd9f0f98b8d0c55d264f3872d7bd9be5ccccfe633fa76884eb12102fbacaf5b78153373c6933a63f04d3a75ac8bc681c9cf7f57b00d6b83bf5e3cce210214e83b66e12891112224eef3f8d8cd81729748176b17ac85a06412c96555554053ae")));
+	tx.addInput('b66cadef36fa01f8def08f3728b1df1ac33d0a04c1a9a28e9b7c64a210c39da2', 1, null, prevOutScript);
+	tx.addOutput('2N6ensJAB2KpWpVZBHhhx6hDHfqaRdk4PDp', 100000);
+	const tx2 = tx.buildIncomplete();
+	console.log(tx2.toHex());
+}
+*/
+
+/*function decodeTx(){
+	var netselect = document.getElementById("networkselect").value;
+	var NETWORK = netselect === "testnet" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+	txhash = "010000000147f6a48c921df9ba95281f0815ea4cea80a77840e24d70b054d0aa1c0cd3789c01000000fdfd0000473044022042f8aaf1a935d2437d52bb34c5ea0aa51b3cf3798d238403667fbc15d2b6d4b7022073a95e3544ed38d8d2befa68dcc4249b5541cb295e2a2195e114372c5df10379014830450221009d5e16a2abc6da3fe0a9ce01d20d6e5b3b1d72b5eeac9fd96ad00dfabb75edc90220604b3f8737af02d45fe541abe8cb8dc5cac8b644773610d90751c625ad66500c014c69522102f0394cd877723cd9f0f98b8d0c55d264f3872d7bd9be5ccccfe633fa76884eb12102fbacaf5b78153373c6933a63f04d3a75ac8bc681c9cf7f57b00d6b83bf5e3cce210214e83b66e12891112224eef3f8d8cd81729748176b17ac85a06412c96555554053aeffffffff01a08601000000000017a914930ea61512dc7a8f0269bdb617283499b40bc0d18700000000";
+	const txb = b.bitcoin.TransactionBuilder.fromTransaction(b.bitcoin.Transaction.fromHex(txhash), NETWORK);
+	console.log(txb);
+	
+}*/
+
+function signIncomplete(){
+	var netselect = document.getElementById("networkselect").value;
+	var NETWORK = netselect === "testnet" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+	//var WIF = "cQRqfFxZZDAFDzJEf1enyjeUMHxzTDgNRo3M9WymGFPTebLGN5YV";
+	var WIF = document.getElementById("wifpk").value;
+	let keyPair = b.bitcoin.ECPair.fromWIF(WIF, NETWORK);
+	var redeeminput = document.getElementById("redeem").value;
+	var redeemScript = buffer.bufferFrom(redeeminput);
+	var hexinput = document.getElementById("hexin").value;
+	const txb = b.bitcoin.TransactionBuilder.fromTransaction(b.bitcoin.Transaction.fromHex(hexinput), NETWORK);
+	//get number of inputs in hex (00 - ff)
+	var subhex = hexinput.substring(8,10); 
+	var numberofinputs = parseInt(subhex, 16); //set radix to 16 for hex	
+	
+	for(var i=0;i<numberofinputs;i++){
+		txb.sign(i, keyPair, redeemScript);
+	}
+	
+	// if the last signature:
+	// const tx = txb.build();
+	const tx = txb.buildIncomplete();
+	document.getElementById("hexout").value = tx.toHex();
+}
+
+function signTx(){
+	var netselect = document.getElementById("networkselect").value;
+	var NETWORK = netselect === "testnet" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+	//var WIF = "cUCbw7GN11xxmmJWTDvZbmESg23pAdcn1fF6HC4Ntwaf1u9x8C62";
+	var WIF = document.getElementById("wifpk").value;
+	let keyPair = b.bitcoin.ECPair.fromWIF(WIF, NETWORK);
+	var redeeminput = document.getElementById("redeem").value;
+	var redeemScript = buffer.bufferFrom(redeeminput);
+	var hexinput = document.getElementById("hexin").value;
+	const txb = b.bitcoin.TransactionBuilder.fromTransaction(b.bitcoin.Transaction.fromHex(hexinput), NETWORK);
+	//get number of inputs in hex (00 - ff)
+	var subhex = hexinput.substring(8,10);
+	var numberofinputs = parseInt(subhex, 16); //set radix to 16 for hex	
+	
+	for(var i=0;i<numberofinputs;i++){
+		txb.sign(i, keyPair, redeemScript);
+	}
+	// if the last signature:
+	// const tx = txb.build();
+	const tx = txb.build();
+	document.getElementById("hexout").value = tx.toHex();
+}
+
+function turnOnWC(){
+    $("#qrcam").css("display","block");
+    var qr = new Instascan.Scanner({
+    video: document.getElementById("qrcam")
+    });
+
+    qr.addListener('scan', function(data){
+        document.getElementById("wifpk").value = data;
+        if(document.getElementById("wifpk").value.length > 20){
+            qr.stop();
+             $("#qrcam").css("display","none");
+            $("#qrnotify").css("display","block");
+        }
+    });    
+
+    Instascan.Camera.getCameras().then(function(cams){
+        qr.start(cams[0]);
+    }).catch(function(err){
+        console.log(err);
+    });    
+}   
+
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html>
+    
+<head>
+    <title>MultiSig Paper Wallet</title>
+    <meta name="description" content="Create MultiSig Addresses in your browser that can be ran offline to create paper wallets.">
+    <meta name="keywords" content="Bitcoin, Multisig Paper, paper wallet, generator, multi-sig, p2sh, javascript, pay to script hash">
+
+    <style>
+    body, html {
+        padding: 12px;
+        font-family: "Verdana", "sans-serif";
+    }
+    a:link {
+    text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+    #share{
+        color: green;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #keep{
+        color: red;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    #sweepcont{
+        width: 95%;
+    }
+    #wit{
+        background-color: black;
+        color: #ffeeff;
+    }
+    .label-default{
+        padding: 3px;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        text-decoration: none;
+        color: #222;
+    }
+    .label-primary{
+        padding: 3px;
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-success{
+        padding: 3px;
+        border: 1px solid #52BE80;
+        background-color: #52BE80;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+    .label-reference{
+        padding: 3px;
+        border: 1px solid #333;
+        background-color: grey;
+        border-radius: 2px;
+        text-decoration: none;
+        color: white;
+    }
+	.label-link{
+        padding: 3px;
+        border: 1px solid #0088ff;
+        background-color: #999;
+        border-radius: 2px;
+        color: white;
+    }
+	
+	
+	
+    #selectMofN{
+		text-align: left;
+		padding: 16px;
+	}
+	#entropyCanvas{
+        display: none;
+    }
+    #entropyRef{
+        border: 1px solid #0088ff;
+        background-color: #0088ff;
+        color: #fff;
+        padding: 5px;
+		cursor: pointer;
+    }
+	.numinput{
+		width: 80px;
+	}
+	
+	
+	
+    #qrnotify{
+        display: none;
+    }
+    #qrnotify2{
+        display: none;
+    }
+    .hr {
+        height: 6px;
+        border: 0;
+        box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    .well{
+        padding: 16px;
+        border: 2px solid #aaa;
+        border-radius: 3px;
+        background-color: #ddd;
+        color: #000;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+    input{
+        width: 60%;
+        border-radius: 4px; 
+        background-color: #eee;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+    }
+    .btn{
+        border-radius: 4px; 
+        background-color: #fff;
+        padding: 7px;
+        font-size: 21px;
+        border: 1px solid #999;
+        box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+    }
+	.btn:hover{
+		background-color: #5DADE2;
+		color: #fff;
+	}
+    #progbar{
+        background-color: #5DADE2;
+        height: 20px;
+    }
+    .panel-primary{
+        border: 2px solid #5DADE2;
+        border-radius: 3px;
+    }
+    .panel-heading{
+        background-color: #5DADE2;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-danger{
+        border: 2px solid #EC7063;
+        border-radius: 3px;
+    }
+    .panel-headingd{
+        background-color: #EC7063;
+        color: #fff;
+        padding: 5px;
+    }
+    .panel-body{
+        padding: 3px;
+    }
+    #detailsAddr{
+        text-align: right;
+    }
+    #detailsAddrQr{
+        display: block;
+        width: 140px;
+        float: right;
+    }
+	.wideinput{
+	width: 500px;
+	}
+	#afterclick{
+		display: none;
+	}
+	#getUTXO{
+		color: #fff;
+		background-color: #2FA4E7;;
+	}
+	#sweepbtn{
+		color: #fff;
+		background-color: #52BE80;
+	}
+	#satperbyte{
+		width: 100px;
+	}
+	.smalltxt{
+		font-size: 10px;
+		color: #888;
+	}
+	#keycycle{
+		float: right;
+		position: relative;
+		display: none;
+	}
+    </style>
+    
+    <!-- jQuery -->
+    <script src="jquery.js"></script>
+    <!-- buidl.js (bitcoinjs-lib wrapper) -->
+    <script src="buidl.js"></script>
+	<!-- QRCode library -->
+    <script type="text/javascript" src="qrcode.js"></script>
+	<!-- bitcoinjs library -->
+	<script type="text/javascript" src="bitcoin.js"></script>
+    
+</head>
+    
+<body>
+    <h1 id="headerTxt">MultiSig Paper Wallet</h1>
+        <!-- introduction -->
+        <br>   
+            <div class="well">
+				MultiSigAddress.org is an <a href="https://github.com/coinables/multisigaddress"><span class="label label-primary">OPEN SOURCE</span></a> bitcoin paper wallet generator. This site uses <a href="https://github.com/coinables/buidljs">buidl.js</a> an easy to use layer on top of the <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label label-success">BitcoinJS</span></a> library.
+				<br>
+				<br>
+				All of the functions on this page can be ran offline, by <a href="https://github.com/coinables/multisigaddress/releases">saving this site</a> and running the <span class="label label-reference">index.html</span> file. 
+				<br>
+				<br>This repository also contains a UTXO selecting transaction builder <a href="multisig-build.html" class="label label-link">multisig-build.html</a>, and offline key signor <a href="multisig-sign.html" class="label label-link">multisig-sign.html</a>.  
+				<br>
+				<br>
+				You can enable testnet mode by adding  <span class="label label-reference">?testnet=true</span>  to the end of the url.
+            </div> 
+			
+			<br><br>
+			
+			<div id="selectMofN">
+				
+				Total number of keys: <input type="number" min="2" max="24" value="3" id="inputn" class="numinput">
+				<br>
+				Number of keys required to spend: <input type="number" min="1" max="24" value="2" id="inputm" class="numinput">
+				<br><br>
+				<button type="button" id="createNewBtn" class="btn btn-primary">Generate New MultiSig Address</button>
+				<div id="keycycle"><button id="leftBtn" onclick="return arrowLeft();" class="btn">&#8678;</button><button id="rightBtn" onclick="return arrowRight();" class="btn">&#8680;</button>
+				</div>
+				<br>				
+				
+			</div>
+			
+			<div id="mainkey">
+			
+			</div>
+			
+			<div id="output">		
+			
+			</div>
+			<center><a href="#showhidepub" id="showhidepub" class="btn">Show/Hide Public Keys</a></center>
+			<div id="redeem"></div>
+            
+		<br>
+		<br>
+		Donate: 3KsYYnXoQGjY5qV546Gpv5zdpqe5BCfmfS
+		<br>
+		<br>
+    <!-- footer -->
+    <a href="https://github.com/coinables/multisigaddress"><span class="label-primary">OPEN SOURCE</span></a>
+    <a href="https://github.com/bitcoinjs/bitcoinjs-lib"><span class="label-success">BITCOINJS</span></a>
+   
+   <script>
+   
+   var showhide = document.getElementById("showhidepub");
+
+   outputshow = true;
+
+   showhide.onclick = function(){
+		if(outputshow){
+			document.getElementById("output").style.display = "none";
+			outputshow = false;
+		} else {
+			document.getElementById("output").style.display = "block";
+			outputshow = true;
+		}
+
+   }
+   
+   function currentNetwork(){
+	let urlGet = window.location.href;
+	let url = new URL(urlGet);
+	let networkGet = url.searchParams.get("testnet");
+	let evalBoolean = networkGet === "true" ? "testnet" : null;
+	return evalBoolean;
+  }
+  
+  if(currentNetwork()==="testnet"){ document.getElementById("headerTxt").innerHTML += ' <span style="color: red;">(Testnet)</span>'}
+   
+   var createNewBtn = document.getElementById("createNewBtn");
+   
+   createNewBtn.onclick = function(){
+		//reset any existing
+		counterstart = 0;
+		n = null;
+		keysout = null;
+		
+		
+		var inputm = document.getElementById("inputm").value;
+		var inputn = document.getElementById("inputn").value;
+		document.getElementById("keycycle").style.display = "inline-block";
+				
+		document.getElementById("output").innerHTML = "";
+		document.getElementById("mainkey").innerHTML = "";
+		
+		var inputm = parseInt(inputm);
+		var inputn = parseInt(inputn);
+		
+		if(inputn<inputm){
+			alert("total keys must be greater than required keys to spend");
+		} else {
+			var evalNet = currentNetwork();
+			var newMultiSig = buidl.multisigRandom(inputm, inputn, evalNet);
+			var newMultiSigAddr = newMultiSig.addr;
+			var multiSigKeys = newMultiSig.privateKeys.split(",");
+			
+			document.getElementById("mainkey").innerHTML = '<table width="100%"><tr><td width="50%"><div id="qrcode"></div><div id="thisaddr"><br><div class="panel panel-primary"><div class="panel-heading"><h3 class="panel-title">MultiSig Address</h3></div><div class="panel-body">' + newMultiSigAddr + '</div></div></div></td><td align="right"><div id="qrcodepk"></div><div id="thispk"><br><div class="panel panel-danger"><div class="panel-headingd"><h3 class="panel-title">Private Key #1</h3></div><div class="panel-body">' + multiSigKeys[0] + '</div></div></div></td></tr></table><br><hr><br>';
+			
+			 new QRCode(document.getElementById("qrcode"), newMultiSigAddr);
+			 
+			 new QRCode(document.getElementById("qrcodepk"), multiSigKeys[0]);
+			
+			for(var i=0;i<multiSigKeys.length;i++){
+				//create elements
+				document.getElementById("output").innerHTML += '<table width="100%"><tr><td><div id="qrcode'+i+'"></div><div id="thispub'+i+'"></div></td></tr></table><br><hr><br>';
+			}
+			
+			for(var i=0;i<multiSigKeys.length;i++){
+				var ikey = multiSigKeys[i];
+				var idetails = buidl.getDetails(ikey, evalNet);
+				var ipubkey = idetails.publicKey;
+				
+				document.getElementById("thispub"+i).innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Public Key #"+(i+1)+"</h3></div><div class='panel-body'>" + ipubkey + "<input type='hidden' class='keysout' id='"+i+"' value='"+ikey+"'></div></div>";
+				 
+				//create new qrcode with multisig address
+				new QRCode(document.getElementById("qrcode"+i), {
+					 text : ipubkey,
+					 width : 192,
+					 height : 192
+				  });		
+				
+			}		
+		
+			document.getElementById("redeem").innerHTML = "<br><div class='panel panel-primary'><div class='panel-heading'><h3 class='panel-title'>Redeem Script</h3></div><div class='panel-body' style='overflow-wrap: break-word;'>" + newMultiSig.redeemScript; + "</div></div>";
+		
+		}
+		
+		
+		
+   }
+   
+   counterstart = 0;
+   
+   function arrowRight(){
+		document.getElementById("qrcodepk").innerHTML = "";
+		var keysout = document.getElementsByClassName("keysout");
+		var n = keysout.length - 1;
+		if(counterstart<n){
+			counterstart++;
+		} else {
+			counterstart = 0;
+		}
+		console.log(counterstart);
+		//update private key and qr code to this key
+		document.getElementById("thispk").innerHTML = '<br><div class="panel panel-danger"><div class="panel-headingd"><h3 class="panel-title">Private Key #'+(counterstart+1)+'</h3></div><div class="panel-body">' + document.getElementById(counterstart).value + '</div></div>';
+		new QRCode(document.getElementById("qrcodepk"), document.getElementById(counterstart).value);
+   }
+   
+   function arrowLeft(){
+		document.getElementById("qrcodepk").innerHTML = "";
+		var keysout = document.getElementsByClassName("keysout");
+		var n = keysout.length - 1;
+		if(counterstart==0){
+			counterstart=n;
+		} else {
+			counterstart--;
+		}
+		console.log(counterstart);
+		//update private key and qr code to this key
+		document.getElementById("thispk").innerHTML = '<br><div class="panel panel-danger"><div class="panel-headingd"><h3 class="panel-title">Private Key #'+(counterstart+1)+'</h3></div><div class="panel-body">' + document.getElementById(counterstart).value + '</div></div>';
+		new QRCode(document.getElementById("qrcodepk"), document.getElementById(counterstart).value);
+   }
+   
+   </script>
+   
+</body>
+</html>

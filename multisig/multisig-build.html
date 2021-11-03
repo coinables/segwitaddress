@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script type="text/javascript" src="bitcoin.js"></script>
+<script type="text/javascript" src="buffer.js"></script>
+<!-- QRCode Webcam Scanner -->
+<script type="text/javascript" src="instascan.min.js"></script>
+<!-- jquery -->
+<script type="text/javascript" src="jquery.js"></script>
+<style>
+.input { color: #fff;  height: 50px; background-color: #336699; }
+.green { background-color: #00cc00; }
+#amtsats{
+	background-color: #ccc;
+}
+.wideinput{
+	width: 500px;
+}
+body, html {
+	padding: 12px;
+	font-family: "Verdana", "sans-serif";
+}
+a:link {
+text-decoration: none;
+}
+
+a:visited {
+	text-decoration: none;
+}
+#share{
+	color: green;
+	font-size: 28px;
+	font-weight: bold;
+}
+#keep{
+	color: red;
+	font-size: 28px;
+	font-weight: bold;
+}
+#sweepcont{
+	width: 60%;
+}
+#wit{
+	background-color: black;
+	color: #ffeeff;
+}
+.label-default{
+	padding: 3px;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+	text-decoration: none;
+	color: #222;
+}
+.label-primary{
+	padding: 3px;
+	border: 1px solid #0088ff;
+	background-color: #0088ff;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+.label-success{
+	padding: 3px;
+	border: 1px solid #52BE80;
+	background-color: #52BE80;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+.label-reference{
+	padding: 3px;
+	border: 1px solid #333;
+	background-color: grey;
+	border-radius: 2px;
+	text-decoration: none;
+	color: white;
+}
+#qrcam{
+	display: none;
+}
+#qrnotify{
+        display: none;
+}
+ #qrnotify2{
+	display: none;
+}
+.hr {
+	height: 6px;
+	border: 0;
+	box-shadow: inset 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+.well{
+	padding: 16px;
+	border: 2px solid #aaa;
+	border-radius: 3px;
+	background-color: #ddd;
+	color: #000;
+	box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+input, select, option{
+	width: 60%;
+	border-radius: 4px; 
+	background-color: #eee;
+	padding: 7px;
+	font-size: 21px;
+	border: 1px solid #999;
+}
+.btn{
+	border-radius: 4px; 
+	background-color: #fff;
+	padding: 7px;
+	font-size: 21px;
+	border: 1px solid #999;
+	box-shadow: 0 6px 6px -6px rgba(0, 0, 0, 1);
+}
+#progbar{
+	background-color: #5DADE2;
+	height: 20px;
+}
+.panel-primary{
+	border: 2px solid #5DADE2;
+	border-radius: 3px;
+}
+.panel-heading{
+	background-color: #5DADE2;
+	color: #fff;
+	padding: 5px;
+}
+.panel-danger{
+	border: 2px solid #EC7063;
+	border-radius: 3px;
+}
+.panel-headingd{
+	background-color: #EC7063;
+	color: #fff;
+	padding: 5px;
+}
+.panel-body{
+	padding: 3px;
+}
+.short{
+	width: 120px;
+}
+.smalltxt{
+	font-size: 10px;
+}
+#satWarn{
+	position: fixed;
+	width: 100%;
+	text-align: center;
+	top: 0px;
+	padding: 14px;
+	background-color: #EC7063;
+	color: #FFF;
+	display: none;
+	z-index: 2;
+}
+</style>
+</head>
+<body>
+<h1 id="headerTxt">Build a MultiSig Transaction</h1>
+        <!-- introduction -->
+        <br>   
+            <div class="well">
+				This page uses a third-party to obtain Unspent Transaction Outputs (UTXO) on the Bitcoin blockchain. UTXOs contain 
+				the vital information needed to construct an unsigned transaction. After building your transaction on this page, copy the resulting transaction hex and proceed to the offline signing page.  
+            </div> 
+<br>
+<br>
+<b>Select Network:</b> <select id="networkselect"><option value="testnet">Testnet</option><option value="mainnet">Mainnet</option></select><br>
+<b>Address:</b> <input type="text" id="address"><button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
+<video id="qrcam"></video><br>
+<b>Redeem Script:</b><a href="redeem-script.html">(help?)</a> <input type="text" id="redeemScript"><br>
+<button id="getutxo" class="btn">GET UTXOs</button>
+<br>
+<p class="smalltxt"><em>UTXO data provided by <a href="https://blockchair.com">Blockchair.com</a></em></p>
+<br>
+<textarea id="inputdata" cols="100" rows="10"></textarea><br>
+<script>
+$("#getutxo").click(function(){
+	var addr = $("#address").val();
+	var netselect = $("#networkselect").val();
+	var NETWORKAPI = netselect === "testnet" ? "testnet/" : "";
+	data ="";
+	$.ajax({
+		async: true,
+		type: "GET",
+		url: "https://api.blockchair.com/bitcoin/"+NETWORKAPI+"dashboards/address/"+addr,
+		success: function(result) {
+		  console.log(result.data[addr].utxo.length + " utxos found");
+		  data = result.data[addr].utxo.map(function(item){
+			return {
+			  "txid": item.transaction_hash,
+			  "vout": item.index,
+			  "satoshis": item.value
+			}
+		  })
+		  //output response into the inputdata element
+		 
+		 $("#inputdata").val(JSON.stringify(data, null, 2))
+		  
+		}
+	  });
+});
+
+function turnOnWC(){
+    $("#qrcam").css("display","block");
+    var qr = new Instascan.Scanner({
+    video: document.getElementById("qrcam")
+    });
+
+    qr.addListener('scan', function(data){
+        document.getElementById("address").value = data;
+        if(document.getElementById("address").value.length > 20){
+            qr.stop();
+            $("#qrcam").css("display","none");
+            $("#qrnotify").css("display","block");
+        }
+    });    
+
+    Instascan.Camera.getCameras().then(function(cams){
+        qr.start(cams[0]);
+    }).catch(function(err){
+        console.log(err);
+    });    
+}   
+</script>
+
+<br><br><button id="getaddr" class="btn">LOAD</button>
+<br><br>
+<b>Choose Which UTXOs to Spend:</b>
+<div id="utxobuttons"></div>
+<div id="satWarn">Use Satoshis For Amounts</div>
+<script>
+$("#getaddr").click(function(){
+			
+		var netselect = $("#networkselect").val();
+		var NETWORK = netselect === "testnet" ? b.bitcoin.networks.testnet : b.bitcoin.networks.bitcoin;
+		  var inputData = $("#inputdata").val();
+		  dataloop = JSON.parse(inputData);
+		  for(var i=0;i<dataloop.length;i++){
+			$("#utxobuttons").append('<button class="input" value="'+i+'">'+dataloop[i].satoshis+'</button>');
+		  }
+		  $("#utxobuttons").append('<br><br><b>Total Satoshis Selected</b> <input type="text" id="amtsats" value="0" readonly><span id="btcval"></span><br><br><b>Output Address: </b><input type="text" id="outputaddr" class="wideinput"> <input type="text" id="outputamt" class="amountinputs short"><br><br><b>Change Output: </b><input type="text" id="changeaddr" class="wideinput"> <input type="text" id="changeamt" class="amountinputs short"><br><br><b>Miners Fee: </b><input type="text" id="feerate" class="short"> <span id="feewarn"></span> <br><br><button id="analyze" class="btn">Build</button><br><br><textarea id="hexout" cols="100" rows="10"></textarea>');
+		  
+		      $(".input").click(function() {
+				console.log(this);
+				$(this).toggleClass("green");
+				if($(this).hasClass("green")){
+					var startval = parseFloat($("#amtsats").val());
+					console.log(startval);
+					var addval = parseFloat($(this).html());
+					console.log(addval);
+					$("#amtsats").val(startval+addval);
+					var calcbtc = (startval+addval)/100000000;
+					$("#btcval").html(calcbtc.toFixed(8)+" BTC");
+					return recalcfees();
+				} else {
+					var startval = parseFloat($("#amtsats").val());
+					var addval = parseFloat($(this).html());
+					$("#amtsats").val(startval-addval);
+					var calcbtc = (startval-addval)/100000000;
+					$("#btcval").html(calcbtc.toFixed(8)+" BTC");
+					return recalcfees();
+				}
+					
+			  });
+			  
+			  //reminder to use satoshis in amount fieldset
+			  $(".amountinputs").focus(function(){
+				$("#satWarn").fadeIn(300);
+			  });
+			  $(".amountinputs").focusout(function(){
+				$("#satWarn").fadeOut(300);
+			  });
+			  
+			$(".amountinputs").change(function(){
+				return recalcfees();
+			});  
+			  
+			$("#analyze").click(function(){
+			var selectnum = document.getElementsByClassName("green");
+			var inputlen = selectnum.length;
+			$("#utxonum").val(inputlen);
+			var inputstousearray = [];
+			for(var i=0;i<inputlen;i++){
+				inputstousearray.push(selectnum[i].value);
+			}
+			console.log(inputstousearray);
+			var totalSatoshis = 0;
+			var txb = new b.bitcoin.TransactionBuilder(NETWORK)
+			
+			var redeemScript = document.getElementById("redeemScript").value;
+			var scriptPubkey = b.bitcoin.script.scriptHash.output.encode(b.bitcoin.crypto.hash160(buffer.bufferFrom(redeemScript)));
+			
+			for(var ii=0;ii<inputlen;ii++){
+				var inputtouse = inputstousearray[ii];
+				console.log(dataloop[inputtouse].txid);
+				txb.addInput(dataloop[inputtouse].txid,
+							dataloop[inputtouse].vout,
+							null,
+							scriptPubkey)
+				totalSatoshis = parseFloat(totalSatoshis) + parseFloat(dataloop[inputtouse].satoshis);
+				console.log(totalSatoshis);
+			}
+			
+			//add output
+			var toaddress = $("#outputaddr").val();
+			var toaddressamt = $("#outputamt").val();
+			toaddressamt = parseFloat(toaddressamt);
+			var changeaddress = $("#changeaddr").val();
+			var changeaddressamt = $("#changeamt").val();
+			changeaddressamt = parseFloat(changeaddressamt);
+			txb.addOutput(toaddress,toaddressamt);
+			if(changeaddressamt.length<1){
+			} else {
+				if(changeaddress.length<1){
+				} else {
+					txb.addOutput(changeaddress,changeaddressamt);
+				}	
+			}
+			
+			
+			var tx = txb.buildIncomplete();
+			var txhex = tx.toHex();
+			$("#hexout").val(txhex);
+			
+			});  
+					
+			
+			
+});
+
+function recalcfees(){
+	var outputamount = $("#outputamt").val();
+	if(outputamount.length<1){ outputamount=0 }
+	console.log(outputamount);
+	var changeamount = $("#changeamt").val();
+	if(changeamount.length<1){ changeamount=0 }
+	console.log(changeamount);
+	var totalout = parseFloat(changeamount) + parseFloat(outputamount);
+	console.log(totalout);
+	var totalsatsselected = $("#amtsats").val();
+	var minersfee = parseFloat(totalsatsselected) - parseFloat(totalout);
+	console.log(minersfee);
+	$("#feerate").val(minersfee);
+	if(minersfee>outputamount){
+		$('#feerate').css('border-bottom', 'solid 2px red');
+		$("#feewarn").html("Warning your fee is very large");
+	} else {
+	    $('#feerate').css('border-bottom', '');
+		$("#feewarn").html("");
+	}
+}
+
+
+</script>
+</body>
+</html>
