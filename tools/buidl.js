@@ -366,11 +366,13 @@ function createFrom(srcInput, networkInput){
 }
 
 //HD functions are not in readme yet, still needs work to be easier to sync with trezor / mycelium and offer both witness and non-witness
-function fromXpub(xpub, acctNumber, keyindex, type){
-    if(type===1){
+function fromXpub(xpub, acctNumber, keyindex){
+    var type = xpub.substring(0,1);
+    if(type==="x"){
         var addr = bitcoin.HDNode.fromBase58(xpub).derivePath(acctNumber+"/"+keyindex).getAddress();
-    } else if(type===3){
-        var wallet = bitcoin.HDNode.fromBase58(xpub).derivePath(acctNumber+"/"+keyindex);
+    } else if(type==="y"){
+        var ypubconv = convertXpub(xpub,"xpub");
+        var wallet = bitcoin.HDNode.fromBase58(ypubconv).derivePath(acctNumber+"/"+keyindex);
         //segwit p2sh
         var pubKey = wallet.keyPair.getPublicKeyBuffer();
         var pubKeyHash = bitcoin.crypto.hash160(pubKey);
@@ -378,8 +380,9 @@ function fromXpub(xpub, acctNumber, keyindex, type){
         var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
         var scriptPubKey2 = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
         var addr = bitcoin.address.fromOutputScript(scriptPubKey2);
-    } else if(type==="b"){
-        var wallet = bitcoin.HDNode.fromBase58(xpub).derivePath(acctNumber+"/"+keyindex);
+    } else if(type==="z"){
+        var zpubconv = convertXpub(xpub,"xpub");
+        var wallet = bitcoin.HDNode.fromBase58(zpubconv).derivePath(acctNumber+"/"+keyindex);
         //native witness
         var pubKey = wallet.keyPair.getPublicKeyBuffer();
         var pubKeyHex = pubKey.toString('hex');
@@ -433,18 +436,33 @@ function seedToXpub(seed, deriv, account){
    let root = bitcoin.HDNode.fromSeedHex(seed);
    let acct = root.derivePath("m/"+deriv+"'/0'/"+account+"'");
    var xpub = acct.neutered().toBase58();
-   return{
-	   xpub
-   }
+   var outpub = xpub;
+    if(deriv==84){
+         var zpub = convertXpub(xpub,"zpub");
+         outpub = zpub;
+       } else if (deriv==49)
+       {
+         var ypub = convertXpub(xpub,"ypub");   
+         outpub = ypub;  
+       } 
+       
+       return outpub;
 }
 
 function seedToXprv(seed, deriv, account){
    let root = bitcoin.HDNode.fromSeedHex(seed);
    let acct = root.derivePath("m/"+deriv+"'/0'/"+account+"'");
-   let xprv = acct.toBase58();
-   return{
-	   xprv
-   }
+   var xprv = acct.toBase58();
+    var outprv = xprv;
+    if(deriv==84){
+       var zprv = convertXpub(xprv,"zprv");
+       outprv = zprv;
+       } else if (deriv==49)
+       {
+           var yprv = convertXpub(xprv,"yprv");   
+           outprv = yprv;
+       }
+       return outprv;
 }
 
 function convertXpub(xpub,target){
