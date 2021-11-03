@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<html>
+    
+<head>
+<title>Key Tools</title>
+
+<style>
+body, html {
+	padding-left: 12px;
+	font-family: "Verdana", "sans-serif";
+}
+</style>
+<script src="buidl.js"></script>
+<script src="jquery-3.2.1.min.js"></script>
+<script src="qrcode.js"></script>
+</head>
+    
+<body>
+<h1>Key Tools</h1>
+<p>Using these tools are advanced techniques. USE AT YOUR OWN RISK.</p>
+<br>
+<br>
+QR Coder: <input type="text" size="100" onchange="return qrcoder(this.value);" placeholder="text to QR code"><br>
+<div id="qrout"></div>
+<br>
+
+<h3>createP2PKH(networkInput)</h3>
+<p>Creates a random legacy Pay-to-Public-Key-Hash key pair, networkInput is Mainnet by default, set to "testnet" if you want testnet.</p>
+networkInput: <select id="createP2PKHp1"><option value="mainnet">mainnet</option><option value="testnet">testnet</option></select><br>
+<button id="createP2PKH" onclick="return createP2PKHbtn();">createP2PKH</button>
+<br>
+<textarea id="createP2PKHout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>createP2WPKH(networkInput)</h3>
+<p>Creates a random native (bech32) segwit key pair, networkInput is Mainnet by default, change to "testnet" for testnet</p>
+networkInput: <select id="createP2WPKHp1"><option value="mainnet">mainnet</option><option value="testnet">testnet</option></select><br>
+<button id="createP2WPKH" onclick="return createP2WPKHbtn();">createP2WPKH</button>
+<br>
+<textarea id="createP2WPKHout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>createP2SHP2WPKH(networkInput)</h3>
+<p>Creates a random p2sh wrapped segwit key pair, networkInput is Mainnet by default, change to "testnet" for testnet</p>
+networkInput: <select id="createP2SHP2WPKHp1"><option value="mainnet">mainnet</option><option value="testnet">testnet</option></select><br>
+<button id="createP2SHP2WPKH" onclick="return createP2SHP2WPKHbtn();">createP2SHP2WPKH</button>
+<br>
+<textarea id="createP2SHP2WPKHout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>getNewAddress(networkInput)</h3>
+<p>Creates a random key pair and outputs all 3 address types (P2PKH, P2WPKH, P2SH-P2WPKH), networkInput is Mainnet by default, change to "testnet" for testnet</p>
+networkInput: <select id="getNewAddressp1"><option value="mainnet">mainnet</option><option value="testnet">testnet</option></select><br>
+<button id="getNewAddress" onclick="return getNewAddressbtn();">getNewAddress</button>
+<br>
+<textarea id="getNewAddressout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>getDetails(wif, networkInput)</h3>
+<p>Takes a WIF private key and outputs all 3 address types, redeem script and public key</p>
+wif: <input type="text" id="getDetailsp1" size="100"><br>
+networkInput: <select id="getDetailsp2"><option value="mainnet">mainnet</option><option value="testnet">testnet</option></select><br>
+<button id="getDetails" onclick="return getDetailsbtn();">getDetails</button>
+<br>
+<textarea id="getDetailsout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>newMnemonic()</h3>
+<p>No parameters. Generates a new random BIP39 mnemonic phrase</p>
+
+<button id="newMnemonic" onclick="return newMnemonicbtn();">newMnemonic</button>
+<br>
+<textarea id="newMnemonicout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>mnemonic2SeedHex(mnemonic)</h3>
+<p>Converts a mnemonic phrase to a hexidecimal seed.</p>
+mnemonic: <input type="text" id="mnemonic2SeedHexp1" size="100"><br>
+<button id="mnemonic2SeedHex" onclick="return mnemonic2SeedHexbtn();">mnemonic2SeedHex</button>
+<br>
+<textarea id="mnemonic2SeedHexout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>seedToXpub(seed, derivationPath, account)</h3>
+<p>3 parameters (string, ,integer, integer). First parameter is a hex seed. Second is derivation path (either 44, 49, 84). Third parameter is HD account.</p>
+seed: <input type="text" id="seedToXpubp1" size="100"><br>
+derivationPath: <select id="seedToXpubp2"><option value="44">44</option><option value="49">49</option><option value="84">84</option></select><br>
+account: <input type="number" id="seedToXpubp3" value="0"><br>
+<button id="seedToXpub" onclick="return seedToXpubbtn();">seedToXpub</button>
+<br>
+<textarea id="seedToXpubout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>seedToXprv(seed, derivationPath, account)</h3>
+<p>3 parameters (string, ,integer, integer). First parameter is a hex seed. Second is derivation path (either 44, 49, 84). Third parameter is HD account.</p>
+seed: <input type="text" id="seedToXprvp1" size="100"><br>
+derivationPath: <select id="seedToXprvp2"><option value="44">44</option><option value="49">49</option><option value="84">84</option></select><br>
+account: <input type="number" id="seedToXprvp3" value="0"><br>
+<button id="seedToXprv" onclick="return seedToXprvbtn();">seedToXprv</button>
+<br>
+<textarea id="seedToXprvout" cols="130" rows="5"></textarea>    
+<br><br>    
+<h3>fromHDSeed(seed, derivationPath, account, change, index)</h3>
+<p>Converts an HD Hex Seed to a key pair. 5 parameters (string, integer, integer, integer, integer). First parameter is hex seed. Second is derivation path (valid 44, 49, 84). Third is HD account. Fourth is change address account. Fifth is key index.</p>
+seed: <input type="text" id="fromHDSeedp1" size="100"><br>
+derivationPath: <select id="fromHDSeedp2"><option value="44">44</option><option value="49">49</option><option value="84">84</option></select><br>
+account: <input type="text" id="fromHDSeedp3" value="0"><br>
+change: <input type="text" id="fromHDSeedp4" value="0"><br>
+index: <input type="text" id="fromHDSeedp5" value="0"><br>
+<button id="fromHDSeed" onclick="return fromHDSeedbtn();">fromHDSeed</button>
+<br>
+<textarea id="fromHDSeedout" cols="130" rows="5"></textarea>
+<br><br>
+<h3>fromXpub(xpub, change, index)</h3>
+<p>3 parameters (string, integer, integer, integer/string). First parameter is xpub/ypub/zpub. Second is change address account. Third parameter is key index.</p>
+xpub: <input type="text" id="fromXpubp1" size="100"><br>
+change: <input type="number" id="fromXpubp2" value="0"><br>
+index: <input type="number" id="fromXpubp3" value="0"><br>
+<button id="fromXpub" onclick="return fromXpubbtn();">fromXpub</button>
+<br>
+<textarea id="fromXpubout" cols="130" rows="5"></textarea>
+    
+<br><br>
+<h3>xprvToWIF(xprv/yprv/zprv, change, index)</h3>
+<p>3 parameters (string, integer, integer). First parameter is xprv/yprv/zprv. Second is change address account. Third parameter is key index.</p>
+xprv/yprv/zprv: <input type="text" id="xprvToWIF1" size="100"><br>
+change: <input type="number" id="xprvToWIF2" value="0"><br>
+index: <input type="number" id="xprvToWIF3" value="0"><br>
+<button id="xprvToWIF" onclick="return xprvToWIFbtn();">xprvToWIF</button>
+<br>
+<textarea id="xprvToWIFout" cols="130" rows="5"></textarea>
+    
+<br><br>
+<br><br>
+<h3>Bulk From Xpub/Ypub/Zpub</h3>
+xpub/ypub/zpub: <input type="text" id="bulkp1" size="100"><br>
+change: <input type="number" id="bulkp2" value="0"><br>
+depth: <input type="number" id="bulkp3" value="20"><br>
+<button id="bulk" onclick="return bulk();">Generate</button>
+<br>
+<textarea id="bulkout" cols="130" rows="5"></textarea>
+<br><br>
+
+<script>	
+function bulk(){
+	let p1 = document.getElementById("bulkp1").value;
+	let p2 = document.getElementById("bulkp2").value;
+	let p3 = document.getElementById("bulkp3").value;
+	
+	
+		var bulkout = '';
+		for(var i=0;i<p3;i++){
+			var loopaddr = buidl.fromXpub(p1,p2,i);
+			bulkout += loopaddr.addr+"\r\n";
+		}
+		document.getElementById("bulkout").value = bulkout;
+	
+}
+function createP2PKHbtn(){
+	let p1 = document.getElementById("createP2PKHp1").value;
+	let keys = buidl.createP2PKH(p1);
+	document.getElementById("createP2PKHout").value = JSON.stringify(keys);
+}
+function createP2WPKHbtn(){
+	let p1 = document.getElementById("createP2WPKHp1").value;
+	let keys = buidl.createP2WPKH(p1);
+	document.getElementById("createP2WPKHout").value = JSON.stringify(keys);
+}
+function createP2SHP2WPKHbtn(){
+	let p1 = document.getElementById("createP2SHP2WPKHp1").value;
+	let keys = buidl.createP2SHP2WPKH(p1);
+	document.getElementById("createP2SHP2WPKHout").value = JSON.stringify(keys);
+}
+function getNewAddressbtn(){
+	let p1 = document.getElementById("getNewAddressp1").value;
+	let keys = buidl.getNewAddress(p1);
+	document.getElementById("getNewAddressout").value = JSON.stringify(keys);
+}
+function getDetailsbtn(){
+	let p1 = document.getElementById("getDetailsp1").value;
+	let p2 = document.getElementById("getDetailsp2").value;
+	let keys = buidl.getDetails(p1,p2);
+	document.getElementById("getDetailsout").value = JSON.stringify(keys);
+}
+function newMnemonicbtn(){
+	let words = buidl.newMnemonic();
+	document.getElementById("newMnemonicout").value = JSON.stringify(words);
+}
+function mnemonic2SeedHexbtn(){
+	let p1 = document.getElementById("mnemonic2SeedHexp1").value;
+	let seed = buidl.mnemonic2SeedHex(p1);
+	document.getElementById("mnemonic2SeedHexout").value = JSON.stringify(seed);
+}
+function seedToXpubbtn(){
+	let p1 = document.getElementById("seedToXpubp1").value;
+	let p2 = document.getElementById("seedToXpubp2").value;
+	let p3 = document.getElementById("seedToXpubp3").value;
+	let xpub = buidl.seedToXpub(p1,p2,p3);
+	document.getElementById("seedToXpubout").value = JSON.stringify(xpub);
+}
+function seedToXprvbtn(){
+	let p1 = document.getElementById("seedToXprvp1").value;
+	let p2 = document.getElementById("seedToXprvp2").value;
+	let p3 = document.getElementById("seedToXprvp3").value;
+	let xprv = buidl.seedToXprv(p1,p2,p3);
+	document.getElementById("seedToXprvout").value = JSON.stringify(xprv);
+}
+function fromHDSeedbtn(){
+	let pm1 = document.getElementById("fromHDSeedp1").value;
+	let pm2 = document.getElementById("fromHDSeedp2").value;
+	let pm3 = document.getElementById("fromHDSeedp3").value;
+	let pm4 = document.getElementById("fromHDSeedp4").value;
+	let pm5 = document.getElementById("fromHDSeedp5").value;
+	let pint2 = parseInt(pm2);
+	let pint3 = parseInt(pm3);
+	let pint4 = parseInt(pm4);
+	let pint5 = parseInt(pm5);
+	let pair = buidl.fromHDSeed(pm1,pint2,pint3,pint4,pint5);
+	document.getElementById("fromHDSeedout").value = JSON.stringify(pair);
+}
+function fromXpubbtn(){
+	let p1 = document.getElementById("fromXpubp1").value;
+	let p2 = document.getElementById("fromXpubp2").value;
+	let p3 = document.getElementById("fromXpubp3").value;
+	
+	let address = buidl.fromXpub(p1,p2,p3);
+	document.getElementById("fromXpubout").value = JSON.stringify(address);
+}
+function xprvToWIFbtn(){
+	let p1 = document.getElementById("xprvToWIF1").value;
+	let p2 = document.getElementById("xprvToWIF2").value;
+	let p3 = document.getElementById("xprvToWIF3").value;
+	let wif = buidl.xprvToWIF(p1,p2,p3);
+	document.getElementById("xprvToWIFout").value = JSON.stringify(wif);
+}    
+function convertXpubbtn(){
+	let p1 = document.getElementById("convertXpubp1").value;
+	let p2 = document.getElementById("convertXpubp2").value;
+	let xpub = buidl.convertXpub(p1,p2);
+	document.getElementById("convertXpubout").value = JSON.stringify(xpub);
+}
+
+function qrcoder(input){
+	let usrinput = input;
+	document.getElementById("qrout").innerHTML = "";
+	new QRCode(document.getElementById("qrout"),usrinput);
+}
+</script>	
+</body>
+</html>
