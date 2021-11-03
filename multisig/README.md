@@ -26,6 +26,5 @@ Drawbacks I am noticing:
  - users cant create an address from their own provided public keys (yet, will add in the future)
  - you tell me, what do you all think?
 
-The domain I'm using: https://multisigaddress.org?testnet=true
 
 It currently supports both testnet and mainnet. I recommend users stick with testnet unless they really know what they are doing.
