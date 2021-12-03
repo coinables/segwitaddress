@@ -159,6 +159,10 @@
         width: 140px;
         float: right;
     }
+	.smalltxt{
+		font-size: 10px;
+		color: #888;
+	}
     </style>
     
     <!-- jQuery -->
@@ -176,7 +180,7 @@
     <!-- QRCode lib -->
     <script type="text/javascript" src="js/qrcode.js"></script>
     <!-- Network specific methods -->
-    <script type="text/javascript" src="js/network.js"></script>
+    <script type="text/javascript" src="js/network.js?s=1"</script>
 </head>
     
 <body>
@@ -230,6 +234,7 @@
         
         <!-- Sweep Key -->
         <h2>Sweep SegWit Private Key</h2>
+		<em class="smalltxt">UTXO data provided by <a href="https://blockchair.com/api/">Blockchair.com</a></em>
         <div id="sweepcont">
             <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey"><button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
             <video id="qrcam"></video>
@@ -508,7 +513,7 @@ function clearBulk(){
       
 function sweepKey() {
      var NETWORK = currentNetwork();
-     var API_DOMAIN = apiDomain();
+     
      var EXPLORER_DOMAIN = explorerDomain();
      var Buffer = null
     
@@ -538,6 +543,8 @@ function sweepKey() {
       var redeemScriptHash = bitcoin.crypto.hash160(redeemScript);
       var scriptPubKey = bitcoin.script.scriptHash.output.encode(redeemScriptHash);
       var P2SHAddress = bitcoin.address.fromOutputScript(scriptPubKey, NETWORK);
+	  
+	  var NETWORKAPI = isTestNet ? "testnet/" : "";
    
       //console.log(P2SHAddress);
       //get UTXOs for address of private key
@@ -545,14 +552,14 @@ function sweepKey() {
       $.ajax({
         async: true,
         type: "GET",
-        url: API_DOMAIN + "/v1/blockchain/address/" + P2SHAddress + "/unspent",
+        url: "https://api.blockchair.com/bitcoin/"+NETWORKAPI+"dashboards/address/"+P2SHAddress,
         success: function(result) {
-          console.log(result.unspent.length + " utxos found");
-          data = result.unspent.map(function(item){
+         console.log(result.data[P2SHAddress].utxo.length + " utxos found");
+		 data = result.data[P2SHAddress].utxo.map(function(item){
             return {
-              "txid": item.txid,
-              "vout": item.n,
-              "satoshis": item.value_int
+              "txid": item.transaction_hash,
+              "vout": item.index,
+              "satoshis": item.value
             }
           })
           //output response into the inputdata element
@@ -627,10 +634,10 @@ function sweepKey() {
       $.ajax({
         async: true,
         type: "POST",
-        url: API_DOMAIN + "/v1/blockchain/pushtx",
+        url: "https://api.blockchair.com/bitcoin/"+NETWORKAPI+"push/transaction",
         contentType: 'application/json',
         dataType: "json",
-        data: JSON.stringify({hex: tx_raw}),
+        data: JSON.stringify({data: tx_raw}),
         success: function(result) {
           console.log("Transaction sent!");
         }

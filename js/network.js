@@ -13,9 +13,9 @@ function headerHtml() {
 }
 
 function apiDomain() {
-    return isTestNet ? 'https://testnet-api.smartbit.com.au' : 'https://api.smartbit.com.au';
+    
 }
 
 function explorerDomain() {
-    return isTestNet ? 'https://testnet.smartbit.com.au' : 'https://www.smartbit.com.au';
+    return isTestNet ? 'https://live.blockcypher.com/btc-testnet' : 'https://live.blockcypher.com/btc';
 }
