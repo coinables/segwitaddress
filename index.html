@@ -234,7 +234,7 @@
         
         <!-- Sweep Key -->
         <h2>Sweep SegWit Private Key</h2>
-		<em class="smalltxt">UTXO data provided by <a href="https://blockchair.com/api/">Blockchair.com</a></em>
+		<em class="smalltxt">UTXO data provided by <a href="https://mempool.space">Mempool.space</a></em>
         <div id="sweepcont">
             <input type="password" class="form-control input-lg" placeholder="SegWit Private Key" id="wifprivatekey"><button class="btn btn-default" onClick="return turnOnWC();">SCAN WITH WEBCAM</button><span id="qrnotify" class="label label-success">QR CODE SCANNED</span>
             <video id="qrcam"></video>
@@ -552,13 +552,13 @@ function sweepKey() {
       $.ajax({
         async: true,
         type: "GET",
-        url: "https://api.blockchair.com/bitcoin/"+NETWORKAPI+"dashboards/address/"+P2SHAddress,
+        url: "https://mempool.space/"+NETWORKAPI+"api/address/"+P2SHAddress+"/utxo",
         success: function(result) {
-         console.log(result.data[P2SHAddress].utxo.length + " utxos found");
-		 data = result.data[P2SHAddress].utxo.map(function(item){
+         console.log(result.length + " utxos found");
+		 data = result.map(function(item){
             return {
-              "txid": item.transaction_hash,
-              "vout": item.index,
+              "txid": item.txid,
+              "vout": item.vout,
               "satoshis": item.value
             }
           })
@@ -634,10 +634,10 @@ function sweepKey() {
       $.ajax({
         async: true,
         type: "POST",
-        url: "https://api.blockchair.com/bitcoin/"+NETWORKAPI+"push/transaction",
+        url: "https://mempool.space/"+NETWORKAPI+"api/tx",
         contentType: 'application/json',
         dataType: "json",
-        data: JSON.stringify({data: tx_raw}),
+        data: JSON.stringify({ tx_raw }),
         success: function(result) {
           console.log("Transaction sent!");
         }
